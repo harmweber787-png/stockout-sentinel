@@ -165,7 +165,7 @@ class TestEingefuegterText:
         assert ui.text_zu_rohdaten(text) == b""
 
     def test_text_wird_genutzt_wenn_keine_datei_vorliegt(self) -> None:
-        rohdaten, herkunft, hinweis = ui.waehle_csv_quelle(None, None, "A;B\nx;1")
+        rohdaten, herkunft, hinweis = ui.waehle_csv_quelle(None, None, b"A;B\nx;1\n")
 
         assert rohdaten == b"A;B\nx;1\n"
         assert herkunft == "Eingefügter CSV-Text"
@@ -174,16 +174,17 @@ class TestEingefuegterText:
     def test_datei_hat_vorrang_und_das_wird_gemeldet(self) -> None:
         """Keine der beiden Eingaben darf stillschweigend verfallen."""
         rohdaten, herkunft, hinweis = ui.waehle_csv_quelle(
-            b"aus-datei", "export.csv", "auch text"
+            b"aus-datei", "export.csv", b"auch text"
         )
 
         assert rohdaten == b"aus-datei"
         assert herkunft == "export.csv"
         assert hinweis and "Datei" in hinweis
-        assert "eingefügter" in hinweis, "Sichtbarer Text braucht echte Umlaute"
+        assert "bestätigter" in hinweis, "Sichtbarer Text braucht echte Umlaute"
 
     def test_ohne_beides_bleibt_alles_leer(self) -> None:
         assert ui.waehle_csv_quelle(None, None, None) == (b"", "", None)
+        assert ui.waehle_csv_quelle(None, None, b"") == (b"", "", None)
 
     def test_eingefuegter_text_laeuft_durch_den_echten_importer(self) -> None:
         from src.adapters.csv_ingest import lese_csv
@@ -193,7 +194,9 @@ class TestEingefuegterText:
             "SNEAKER-42-SW;120;30;55;61;58\r\n"
             "STIEFEL-41-BR;40;60;12;9;7\r\n"
         )
-        rohdaten, _herkunft, _hinweis = ui.waehle_csv_quelle(None, None, text)
+        rohdaten, _herkunft, _hinweis = ui.waehle_csv_quelle(
+            None, None, ui.text_zu_rohdaten(text)
+        )
 
         ergebnis = lese_csv(rohdaten)
 
@@ -292,18 +295,41 @@ class TestOberflaeche:
         assert at.sidebar.text_area, "Kein Textfeld zum Einfuegen vorhanden"
         assert "einfügen" in at.sidebar.text_area[0].label.lower()
 
-    def test_eingefuegter_csv_text_erzeugt_die_ampeltabelle(self) -> None:
-        """Der eigentliche Zweck: Disposition ohne jeden Datei-Dialog."""
+    #: Kleiner Testexport: ein knapper und ein reichlich gedeckter Artikel.
+    CSV_TEXT = (
+        "Artikel;Bestand;Lieferzeit;2024-01;2024-02;2024-03;2024-04\n"
+        "SNEAKER-42-SW;20;30;55;61;58;60\n"
+        "STIEFEL-41-BR;900;60;12;9;7;8\n"
+    )
+
+    def _csv_modus(self):
         at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
         at.sidebar.radio[0].set_value("CSV-Upload").run()
-        at.sidebar.text_area[0].set_value(
-            "Artikel;Bestand;Lieferzeit;2024-01;2024-02;2024-03;2024-04\n"
-            "SNEAKER-42-SW;20;30;55;61;58;60\n"
-            "STIEFEL-41-BR;900;60;12;9;7;8\n"
-        ).run()
+        return at
+
+    def test_berechnen_knopf_steht_unter_dem_textfeld(self) -> None:
+        at = self._csv_modus()
+
+        beschriftungen = [b.label for b in at.sidebar.button]
+        assert "Eingabe berechnen" in beschriftungen
+
+    def test_text_allein_rechnet_noch_nicht(self) -> None:
+        """Kern der Aenderung: erst die Bestaetigung loest die Berechnung aus."""
+        at = self._csv_modus()
+        at.sidebar.text_area[0].set_value(self.CSV_TEXT).run()
 
         assert not at.exception, at.exception
-        assert at.dataframe, "Keine Tabelle nach dem Einfuegen"
+        assert not at.dataframe, "Ohne Knopfdruck darf nicht gerechnet werden"
+        assert any("berechnen" in i.value for i in at.sidebar.info)
+
+    def test_knopfdruck_erzeugt_die_ampeltabelle(self) -> None:
+        """Der eigentliche Zweck: Disposition ohne jeden Datei-Dialog."""
+        at = self._csv_modus()
+        at.sidebar.text_area[0].set_value(self.CSV_TEXT).run()
+        at.sidebar.button[0].click().run()
+
+        assert not at.exception, at.exception
+        assert at.dataframe, "Keine Tabelle nach dem Knopfdruck"
 
         tabelle: pd.DataFrame = at.dataframe[0].value
         assert set(tabelle["Artikel"]) == {"SNEAKER-42-SW", "STIEFEL-41-BR"}
@@ -315,14 +341,51 @@ class TestOberflaeche:
         reichlich = tabelle[tabelle["Artikel"] == "STIEFEL-41-BR"].iloc[0]
         assert reichlich["Nachbestellmenge"] == 0
 
+    def test_ergebnis_ueberlebt_spaetere_bedienschritte(self) -> None:
+        """Ein Button meldet seinen Druck nur einmal - die Daten muessen bleiben."""
+        at = self._csv_modus()
+        at.sidebar.text_area[0].set_value(self.CSV_TEXT).run()
+        at.sidebar.button[0].click().run()
+        assert at.dataframe
+
+        # Horizont verstellen loest einen Rerun ohne Knopfdruck aus.
+        at.sidebar.slider[0].set_value(12).run()
+
+        assert not at.exception, at.exception
+        assert at.dataframe, "Nach dem Rerun waren die Daten verloren"
+        assert set(at.dataframe[0].value["Artikel"]) == {
+            "SNEAKER-42-SW",
+            "STIEFEL-41-BR",
+        }
+
+    def test_leeres_textfeld_wird_beim_knopfdruck_gemeldet(self) -> None:
+        at = self._csv_modus()
+        at.sidebar.button[0].click().run()
+
+        assert not at.exception, at.exception
+        assert any("leer" in w.value for w in at.sidebar.warning)
+        assert not at.dataframe
+
     def test_unbrauchbarer_text_meldet_einen_fehler(self) -> None:
-        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
-        at.sidebar.radio[0].set_value("CSV-Upload").run()
+        at = self._csv_modus()
         at.sidebar.text_area[0].set_value("nur;irgendwas\n1;2\n").run()
+        at.sidebar.button[0].click().run()
 
         assert not at.exception, at.exception
         assert any("nicht lesbar" in e.value for e in at.sidebar.error)
         assert not at.dataframe
+
+    def test_geleertes_textfeld_setzt_die_auswertung_zurueck(self) -> None:
+        at = self._csv_modus()
+        at.sidebar.text_area[0].set_value(self.CSV_TEXT).run()
+        at.sidebar.button[0].click().run()
+        assert at.dataframe
+
+        at.sidebar.text_area[0].set_value("").run()
+        at.sidebar.button[0].click().run()
+
+        assert not at.exception, at.exception
+        assert not at.dataframe, "Nach dem Leeren darf nichts stehen bleiben"
 
 
 @pytest.mark.usefixtures("pflichtmodus")

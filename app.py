@@ -49,6 +49,12 @@ __all__ = [
 
 TITEL = "Stockout-Sentinel"
 
+#: Schluessel im Session-State: der zuletzt *bestaetigte* Textfeldinhalt.
+#: Ohne diese Ablage waere der Inhalt nach dem naechsten Rerun - etwa beim
+#: Verschieben des Horizont-Reglers - wieder verloren, denn ein Button
+#: meldet seinen Druck nur im unmittelbar folgenden Durchlauf.
+SCHLUESSEL_TEXT = "bestaetigter_csv_text"
+
 #: Farbwahl bewusst kontrastreich und nicht rot/gruen-abhaengig - die Ampel
 #: traegt ihre Aussage ohnehin im Symbol, der Graph soll unabhaengig davon
 #: lesbar bleiben.
@@ -108,9 +114,15 @@ def text_zu_rohdaten(text: str) -> bytes:
 
 
 def waehle_csv_quelle(
-    datei_inhalt: bytes | None, datei_name: str | None, text: str | None
+    datei_inhalt: bytes | None,
+    datei_name: str | None,
+    text_rohdaten: bytes | None,
 ) -> tuple[bytes, str, str | None]:
-    """Entscheidet zwischen hochgeladener Datei und eingefuegtem Text.
+    """Entscheidet zwischen hochgeladener Datei und bestaetigtem Textinhalt.
+
+    ``text_rohdaten`` ist der bereits mit :func:`text_zu_rohdaten`
+    aufbereitete Inhalt des Textfelds - aufbereitet wird er erst, wenn der
+    Nutzer die Eingabe bestaetigt hat, nicht bei jedem Tastendruck.
 
     Die Datei hat Vorrang: sie ist die bewusstere Handlung. Liegt beides
     vor, wird das gemeldet, statt stillschweigend eine der beiden Eingaben
@@ -121,18 +133,18 @@ def waehle_csv_quelle(
         nichts vorliegt; ``hinweis`` ist gesetzt, wenn beide Wege belegt
         sind.
     """
-    hat_text = bool(text and text.strip())
+    hat_text = bool(text_rohdaten)
 
     if datei_inhalt:
         hinweis = (
-            "Datei und eingefügter Text liegen vor – die Datei wird verwendet."
+            "Datei und bestätigter Text liegen vor – die Datei wird verwendet."
             if hat_text
             else None
         )
         return datei_inhalt, (datei_name or "Hochgeladene Datei"), hinweis
 
     if hat_text:
-        return text_zu_rohdaten(text or ""), "Eingefügter CSV-Text", None
+        return bytes(text_rohdaten or b""), "Eingefügter CSV-Text", None
 
     return b"", "", None
 
@@ -309,16 +321,26 @@ def _zone_eingabe() -> tuple[list[SKUInput], dict[str, str], list, str]:
             height=150,
             placeholder="Artikel;Bestand;Lieferzeit;2024-01;2024-02;...",
             help=(
-                "CSV-Inhalt kopieren und hier einsetzen - er wird sofort "
-                "gelesen, ganz ohne Datei-Dialog. Gleiche Spaltenerkennung "
-                "wie beim Upload."
+                "CSV-Inhalt kopieren, hier einsetzen und anschließend "
+                "'Eingabe berechnen' drücken. Gleiche Spaltenerkennung wie "
+                "beim Upload."
             ),
         )
+
+        # Bewusst ein eigener Knopf: Auf Mobilgeraeten loest das Textfeld
+        # beim Tippen und bei jedem Fokuswechsel einen Rerun aus. Ohne
+        # Bestaetigung wuerde die App auf halb eingefuegtem Text rechnen und
+        # den Nutzer mit Fehlermeldungen beschiessen, die sich von selbst
+        # wieder erledigen.
+        if st.sidebar.button("Eingabe berechnen", width="stretch"):
+            st.session_state[SCHLUESSEL_TEXT] = text_zu_rohdaten(eingefuegt or "")
+            if not st.session_state[SCHLUESSEL_TEXT]:
+                st.sidebar.warning("Das Textfeld ist leer – es gibt nichts zu berechnen.")
 
         rohdaten, herkunft, hinweis = waehle_csv_quelle(
             datei.getvalue() if datei is not None else None,
             datei.name if datei is not None else None,
-            eingefuegt,
+            st.session_state.get(SCHLUESSEL_TEXT, b""),
         )
         if hinweis:
             st.sidebar.info(hinweis)
@@ -334,6 +356,8 @@ def _zone_eingabe() -> tuple[list[SKUInput], dict[str, str], list, str]:
                 warnungen = ergebnis.warnungen
                 quelle = f"{herkunft} ({ergebnis.layout}format)"
                 st.sidebar.success(f"{len(artikel)} Artikel gelesen")
+        elif eingefuegt and eingefuegt.strip():
+            st.sidebar.info("Text erfasst – jetzt 'Eingabe berechnen' drücken.")
         else:
             st.sidebar.info("Noch keine Datei gewählt und kein Text eingefügt.")
     else:

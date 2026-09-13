@@ -289,10 +289,16 @@ Erreichbar unter <http://localhost:8501>. Drei Zonen:
   werden angezeigt.
 * **CSV-Text einfügen** — darunter ein Textfeld für den Weg ohne Datei-Dialog.
   Auf Mobilgeräten ist das Auswählen einer Datei umständlich, Einfügen aus der
-  Zwischenablage nicht. Der Text wird über `io.StringIO` wie eine Datei
-  gelesen; BOM, geschützte Leerzeichen und gemischte Zeilenenden — die
-  typischen Mitbringsel aus Messengern — werden dabei bereinigt. Liegt beides
-  vor, gewinnt die Datei und die Oberfläche sagt das.
+  Zwischenablage nicht. Gerechnet wird erst auf **„Eingabe berechnen"**: Das
+  Textfeld löst beim Tippen und bei jedem Fokuswechsel einen Rerun aus, und
+  ohne diese Bestätigung würde die App auf halb eingefügtem Text rechnen und
+  Fehlermeldungen zeigen, die sich von selbst wieder erledigen. Der bestätigte
+  Inhalt liegt im Session-State und übersteht damit spätere Bedienschritte wie
+  das Verschieben des Horizont-Reglers.
+  Der Text wird über `io.StringIO` wie eine Datei gelesen; BOM, geschützte
+  Leerzeichen und gemischte Zeilenenden — die typischen Mitbringsel aus
+  Messengern — werden dabei bereinigt. Liegt beides vor, gewinnt die Datei und
+  die Oberfläche sagt das.
 * **Demo-Datensätze** — vier Szenarien (gemischtes Sortiment, Engpass,
   Kapitalbindung, Saison). Sie werden **programmatisch erzeugt**: im
   Repository liegen weiterhin keine Beispieldateien und keine
