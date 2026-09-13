@@ -110,6 +110,52 @@ def marke_datauri(schildfarbe: str = "#475569") -> str:
     return f"data:image/svg+xml;base64,{kodiert}"
 
 
+def kopfdaten_skript() -> str:
+    """Traegt Apple-Touch-Icon und Home-Screen-Namen in den Dokumentenkopf ein.
+
+    ``st.html`` scheidet dafuer aus: Es rendert in den Body und entfernt
+    ``<link>`` und ``<script>`` beim Bereinigen - im Browser geprueft, es
+    landete kein einziger Link im DOM. ``st.iframe`` bettet dagegen in einem
+    gleichnamigen Rahmen ein, der ueber ``window.parent`` an den Kopf des
+    Hauptdokuments darf.
+
+    Der Eintrag ist idempotent: Streamlit fuehrt das Skript bei jedem Rerun
+    erneut aus, ohne die Pruefung saeße der Link bald hundertfach im Kopf.
+    """
+    return f"""
+<script>
+(function () {{
+  var kopf = window.parent.document.head;
+  if (!kopf) return;
+
+  function setze(selektor, bauen) {{
+    var vorhanden = kopf.querySelector(selektor);
+    if (vorhanden) vorhanden.remove();
+    kopf.appendChild(bauen());
+  }}
+
+  // Signet fuer "Zum Home-Bildschirm".
+  setze('link[rel="apple-touch-icon"]', function () {{
+    var l = window.parent.document.createElement("link");
+    l.rel = "apple-touch-icon";
+    l.href = "{marke_datauri()}";
+    return l;
+  }});
+
+  // Safari schlaegt diesen Namen beim Ablegen vor.
+  setze('meta[name="apple-mobile-web-app-title"]', function () {{
+    var m = window.parent.document.createElement("meta");
+    m.name = "apple-mobile-web-app-title";
+    m.content = "{TITEL}";
+    return m;
+  }});
+
+  window.parent.document.title = "{TITEL}";
+}})();
+</script>
+"""
+
+
 def marken_header() -> str:
     """Baut den Seitenkopf: Signet (per CSS) neben der Wortmarke."""
     return (
@@ -551,6 +597,22 @@ ERKLAERUNG = {
 }
 
 
+#: Zwei Musterzeilen im Breitformat. Keine Fachdaten - eine Formatvorlage,
+#: an der sich die Spaltenstruktur ablesen laesst.
+MUSTER_BREIT = (
+    "Artikel;Bestand;Lieferzeit;2024-01;2024-02;2024-03\n"
+    "ARTIKEL-001;120;30;55;61;58\n"
+    "ARTIKEL-002;40;60;12;9;7\n"
+)
+
+#: Dieselben zwei Artikel im Langformat.
+MUSTER_LANG = (
+    "Artikel;Datum;Menge;Bestand;Lieferzeit\n"
+    "ARTIKEL-001;2024-01;55;120;30\n"
+    "ARTIKEL-001;2024-02;61;120;30\n"
+)
+
+
 def _schnelleinstieg() -> None:
     """Einklappbare Kurzanleitung direkt unter dem Seitenkopf.
 
@@ -562,7 +624,8 @@ def _schnelleinstieg() -> None:
             "Verbrauchsdaten einfügen",
             "CSV-Export aus dem Warenwirtschaftssystem hochladen – oder den "
             "Inhalt links ins Textfeld einsetzen und „Eingabe berechnen“ "
-            "drücken. Die Spalten werden automatisch erkannt.",
+            "drücken. Welche vier Angaben die Datei enthalten muss, steht "
+            "unter der Schrittfolge.",
         ),
         (
             "KI-Analyse abwarten",
@@ -587,6 +650,60 @@ def _schnelleinstieg() -> None:
                 f"</div>"
                 for nummer, (titel, text) in enumerate(schritte, start=1)
             )
+        )
+
+        st.markdown("#### Diese vier Angaben braucht die Datei")
+        st.markdown(
+            """
+| Pflichtfeld | Erkannte Spaltennamen (Auswahl) | Bedeutung |
+| --- | --- | --- |
+| **Artikel-ID** | `Artikel`, `Art-Nr`, `SKU`, `Artikelnummer`, `Material` | Eindeutige Kennung je Artikel |
+| **Aktueller Lagerbestand** | `Bestand`, `Lager`, `Lagerbestand`, `Stock` | Menge, die heute im Lager liegt |
+| **Lieferzeit (Tage)** | `Lieferzeit`, `Vorlaufzeit`, `WBZ`, `Lead Time` | Wiederbeschaffungszeit in Tagen |
+| **Historische Absätze** | siehe Formate unten | **Mindestens 2 Perioden** je Artikel |
+
+Groß-/Kleinschreibung, Trenn- und Sonderzeichen spielen keine Rolle:
+`Art.-Nr.`, `ART NR` und `Art-Nr` gelten als dasselbe Feld.
+"""
+        )
+
+        st.markdown("#### Zwei zulässige Aufbauten")
+        breit, lang = st.tabs(["Breitformat (empfohlen)", "Langformat"])
+
+        with breit:
+            st.markdown(
+                "Eine Zeile je Artikel, die Perioden stehen als **Datumsspalten** "
+                "nebeneinander. Kompakt – gut zum Einfügen auf dem Handy."
+            )
+            st.markdown(
+                """
+| Artikel | Bestand | Lieferzeit | 2024-01 | 2024-02 | 2024-03 |
+| --- | --- | --- | --- | --- | --- |
+| ARTIKEL-001 | 120 | 30 | 55 | 61 | 58 |
+| ARTIKEL-002 | 40 | 60 | 12 | 9 | 7 |
+"""
+            )
+            st.code(MUSTER_BREIT, language="csv")
+
+        with lang:
+            st.markdown(
+                "Eine Zeile je Artikel **und** Periode, mit eigenen Spalten für "
+                "Datum und Menge. So exportieren die meisten ERP-Systeme."
+            )
+            st.markdown(
+                """
+| Artikel | Datum | Menge | Bestand | Lieferzeit |
+| --- | --- | --- | --- | --- |
+| ARTIKEL-001 | 2024-01 | 55 | 120 | 30 |
+| ARTIKEL-001 | 2024-02 | 61 | 120 | 30 |
+"""
+            )
+            st.code(MUSTER_LANG, language="csv")
+
+        st.caption(
+            "Datumsangaben in jedem gängigen Format: `2024-03-01`, "
+            "`01.03.2024`, `2024-03` oder `Mrz 24`. Zahlen dürfen Schweizer "
+            "oder deutsche Schreibweise tragen (`1'234.50`, `1.234,50`)."
         )
 
 
@@ -615,10 +732,16 @@ def _zone_eingabe() -> tuple[list[SKUInput], dict[str, str], list, str]:
     if modus == "CSV-Upload":
         datei = st.sidebar.file_uploader(
             "ERP-Export (CSV)",
-            type=["csv", "txt"],
+            # Bewusst ohne Typenfilter: Die "Dateien"-App unter iOS reicht
+            # Tabellen je nach Herkunft als text/plain oder ganz ohne Endung
+            # weiter, und eine Endungsliste graut sie dann aus. Was wirklich
+            # brauchbar ist, entscheidet ohnehin erst der Importer - und der
+            # meldet unlesbare Inhalte mit klarem Text.
+            type=None,
             help=(
-                "Spalten werden flexibel zugeordnet: Art-Nr, SKU, Bestand, "
-                "Lager, Vorlaufzeit, ... Lang- und Breitformat werden erkannt."
+                "Jedes textbasierte Tabellenformat (CSV, TXT, TSV). Spalten "
+                "werden flexibel zugeordnet: Art-Nr, SKU, Bestand, Lager, "
+                "Vorlaufzeit, ... Lang- und Breitformat werden erkannt."
             ),
         )
 
@@ -937,6 +1060,14 @@ def main() -> None:
 
     # Stylesheet zuerst, damit der Kopf schon gestaltet erscheint.
     st.html(sentinel_css())
+    # Unsichtbarer Rahmen: traegt Signet und Home-Screen-Namen in den
+    # Dokumentenkopf ein - ueber st.html ginge das nicht, weil dort <link>
+    # und <script> beim Bereinigen entfernt werden. Der eingebettete Inhalt
+    # ist ein festes Literal aus eigenen Konstanten, keine Fremdeingabe.
+    # height=1: st.iframe verlangt eine positive Hoehe, und ein per
+    # display:none versteckter Rahmen fuehrt je nach Browser dazu, dass
+    # das Skript gar nicht erst laeuft.
+    st.iframe(kopfdaten_skript(), height=1)
     st.html(marken_header())
     _schnelleinstieg()
 

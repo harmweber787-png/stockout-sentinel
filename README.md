@@ -286,9 +286,23 @@ Erreichbar unter <http://localhost:8501>. Die Oberfläche tritt als
 und Paketnamen behalten den technischen Namen `stockout-sentinel`.
 
 Ein einklappbarer **Schnelleinstieg** unter dem Kopf erklärt den Ablauf in drei
-Schritten, und die Fachbegriffe (Meldebestand, Sicherheitsbestand, Reichweite)
-tragen Erklärtexte an Kennzahlen und Tabellenspalten — die Oberfläche soll ohne
-Dispositions-Vorwissen bedienbar sein.
+Schritten, benennt die vier Pflichtangaben (Artikel-ID, Lagerbestand, Lieferzeit
+in Tagen, mindestens zwei Verbrauchsperioden) und zeigt beide zulässigen
+Aufbauten als Muster-Tabelle samt kopierbarem Codeblock. Die Fachbegriffe
+(Meldebestand, Sicherheitsbestand, Reichweite) tragen Erklärtexte an Kennzahlen
+und Tabellenspalten — die Oberfläche soll ohne Dispositions-Vorwissen bedienbar
+sein. Ein Test liest die Musterzeilen durch den echten Importer, damit die
+Formatvorlage nicht von der Wirklichkeit abdriftet.
+
+Der Datei-Upload arbeitet **ohne Typenfilter**: Die „Dateien"-App unter iOS
+reicht Tabellen je nach Herkunft als `text/plain` oder ganz ohne Endung weiter,
+und eine Endungsliste graut sie dort aus. Was brauchbar ist, entscheidet
+ohnehin erst der Importer — und der meldet unlesbare Inhalte im Klartext.
+
+Für „Zum Home-Bildschirm" trägt die App ein Apple-Touch-Icon und den Namen
+`Sentinel B2B` in den Dokumentenkopf ein. Das geschieht über `st.iframe` und
+`window.parent`: `st.html()` entfernt `<link>` und `<script>` beim Bereinigen —
+im Browser nachgemessen, es landete kein einziger Link im DOM.
 
 Das Styling kommt als ein `<style>`-Block über `st.html()` und selektiert über
 eigene `sentinel-*`-Klassen sowie Streamlits `data-testid`-Attribute — nie über

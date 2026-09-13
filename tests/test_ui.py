@@ -254,6 +254,73 @@ class TestOberflaeche:
         assert 'data-testid="stMetricValue"' in bloecke
         assert "text-overflow: clip" in bloecke
 
+    def test_schnelleinstieg_nennt_die_vier_pflichtfelder(self) -> None:
+        """Vages "Spalten werden erkannt" half niemandem beim ersten Export."""
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+
+        text = " ".join(m.value for m in at.markdown)
+        for pflichtfeld in (
+            "Artikel-ID",
+            "Aktueller Lagerbestand",
+            "Lieferzeit (Tage)",
+            "Historische Absätze",
+        ):
+            assert pflichtfeld in text, f"Pflichtfeld '{pflichtfeld}' nicht genannt"
+        assert "Mindestens 2 Perioden" in text
+
+    def test_schnelleinstieg_zeigt_beide_formate(self) -> None:
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+
+        # Die Formatnamen stehen als Reiterbeschriftung, nicht im Fliesstext.
+        reiter = " ".join(t.label for t in at.tabs)
+        assert "Breitformat" in reiter and "Langformat" in reiter
+
+        # Muster-Tabellen als Markdown.
+        text = " ".join(m.value for m in at.markdown)
+        assert "| Artikel | Bestand | Lieferzeit |" in text
+        assert "| Artikel | Datum | Menge |" in text
+
+    def test_schnelleinstieg_bietet_kopierbare_musterzeilen(self) -> None:
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+
+        bloecke = [c.value for c in at.code]
+        assert any("ARTIKEL-001;120;30" in b for b in bloecke), "Breitformat-Muster fehlt"
+        assert any("ARTIKEL-001;2024-01;55" in b for b in bloecke), "Langformat-Muster fehlt"
+
+    @pytest.mark.parametrize(
+        ("name", "muster"),
+        [("breit", "MUSTER_BREIT"), ("lang", "MUSTER_LANG")],
+    )
+    def test_musterzeilen_sind_tatsaechlich_einlesbar(self, name: str, muster: str) -> None:
+        """Eine Formatvorlage, die der eigene Importer ablehnt, waere schlimmer
+        als gar keine."""
+        from src.adapters.csv_ingest import lese_csv
+
+        ergebnis = lese_csv(getattr(ui, muster).encode("utf-8"))
+
+        assert ergebnis.layout == name
+        assert ergebnis.artikel
+        assert not ergebnis.warnungen
+
+    def test_upload_akzeptiert_alle_dateitypen(self) -> None:
+        """iOS reicht Tabellen ohne Endung oder als text/plain weiter -
+        eine Endungsliste graut sie in der Dateien-App aus."""
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+        at.sidebar.radio[0].set_value("CSV-Upload").run()
+
+        hochlader = at.sidebar.file_uploader[0]
+        assert list(hochlader.proto.type) == [], "Typenfilter schraenkt noch ein"
+
+    def test_kopfdaten_setzen_signet_und_home_screen_namen(self) -> None:
+        skript = ui.kopfdaten_skript()
+
+        assert 'rel = "apple-touch-icon"' in skript
+        assert "data:image/svg+xml;base64," in skript
+        assert 'name = "apple-mobile-web-app-title"' in skript
+        assert f'content = "{ui.TITEL}"' in skript
+        # Mehrfaches Einsetzen bei jedem Rerun waere ein wachsender Kopf.
+        assert ".remove()" in skript
+
     def test_schnelleinstieg_erklaert_drei_schritte(self) -> None:
         at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
 
