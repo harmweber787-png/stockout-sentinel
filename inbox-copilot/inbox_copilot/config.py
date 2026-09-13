@@ -20,12 +20,15 @@ bleibt damit gewahrt (Gate G1 ersetzt jedes Eszett in der Modellausgabe).
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import Final, Literal
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 __all__ = [
+    "CHARSET_RE",
+    "DISCLAIMER_RE",
     "DRAFTER_SYSTEM_PROMPT",
     "ESCALATE_FLAGS",
     "ESCALATE_KATEGORIEN",
@@ -36,19 +39,38 @@ __all__ = [
     "FORBIDDEN_DE",
     "FORBIDDEN_FR",
     "FORBIDDEN_IT",
+    "GMAIL_DRAFT_LABEL",
+    "GMAIL_RETRY_STATUS",
+    "GMAIL_USER_ID",
+    "GREETING_RE",
+    "HTML_BLOCK_TAGS",
+    "HTML_DROP_TAGS",
     "MODELLE_OHNE_SAMPLING_PARAMETER",
     "MONATE_DE",
     "NO_DRAFT_FLAGS",
     "NUMMER_RE",
+    "OUTLOOK_FROM_RE",
+    "OUTLOOK_HEADER_LOOKAHEAD",
+    "OUTLOOK_SENT_RE",
     "PLACEHOLDER_KEYS",
     "PLACEHOLDER_RE",
+    "QUOTE_LINE_PATTERNS",
     "RETRY_INSTRUKTION",
+    "SIGNATURE_DELIMITER_RE",
+    "SIGNATURE_MAX_FRACTION",
+    "SIGNATURE_MIN_SIGNALS",
+    "SIGNATURE_SIGNAL_RES",
+    "SIGNATURE_WINDOW_LINES",
     "SPRACHE_ZU_ANTWORTSPRACHE",
     "TRIAGE_SYSTEM_PROMPT",
     "WARNBOX_HTML",
     "Settings",
     "unterstuetzt_sampling_parameter",
 ]
+
+
+#: Zeitzone fuer received_at / Thread-Zeitstempel (Gmail liefert ms-Epoch).
+TIMEZONE_DEFAULT: Final[str] = "Europe/Zurich"
 
 
 class Settings(BaseSettings):
@@ -95,6 +117,49 @@ class Settings(BaseSettings):
 
     anthropic_api_key: SecretStr
     mail_client: Literal["gmail", "outlook_de", "outlook_en"] = "gmail"
+
+    # --- Zeitzone ----------------------------------------------------------
+    timezone: str = TIMEZONE_DEFAULT
+
+    # --- Gmail -------------------------------------------------------------
+    # DECISION: kleinster Scope, der Lesen + Labels + Drafts abdeckt; kein
+    # Senden, kein Loeschen.
+    gmail_scopes: list[str] = ["https://www.googleapis.com/auth/gmail.modify"]
+    gmail_credentials_path: Path = Path("secrets/oauth_client.json")
+    gmail_token_path: Path = Path("secrets/token.json")
+    gmail_state_path: Path = Path("state/gmail_state.json")
+    gmail_backoff_base_s: float = 1.0  # 1 s, 2 s, 4 s
+    gmail_max_attempts: int = 3
+    poll_interval_s: int = 60
+    poll_query: str = "in:inbox -category:promotions -category:social newer_than:2d"
+    poll_max_messages: int = 50
+    thread_context_depth: int = 3
+    processed_ring_size: int = 1000
+    stats_latency_window: int = 1000
+
+    # --- Attachments ---------------------------------------------------------
+    attachment_reference_re: str = (
+        r"(anhang|beiliegend|beigefügt|angehängt|siehe pdf|protokoll|attached"
+        r"|ci-joint|in allegato)"
+    )
+    attachment_filename_re: str = (
+        r"(rechnung|offerte|protokoll|maengel|mängel|plan|vertrag|devis|facture"
+        r"|fattura)"
+    )
+    extractable_mime: frozenset[str] = frozenset({"application/pdf", "text/plain"})
+    attachment_max_bytes: int = 15 * 1024 * 1024
+    pdf_head_pages: int = 4
+    pdf_include_last_page: bool = True
+    parse_timeout_s: float = 5.0
+    inline_image_max_bytes: int = 50 * 1024
+    html_parse_threshold_bytes: int = 200 * 1024
+
+    # --- Labels: Google-Palette, KEINE freien Hex-Werte ------------------------
+    # name -> (backgroundColor, textColor)
+    label_colors: dict[str, tuple[str, str]] = {
+        "AI/99-Achtung-Chef": ("#fb4c2f", "#ffffff"),
+        "AI/21-Draft-Platzhalter": ("#ffc8af", "#000000"),
+    }
 
     def betreff_prefix(self) -> str:
         """Client-abhaengiges Antwort-Praefix fuer den Betreff."""
@@ -227,8 +292,10 @@ NUMMER_RE: Final[re.Pattern[str]] = re.compile(r"\d[\d'’.]*\d")
 # ---------------------------------------------------------------------------
 
 WARNBOX_HTML: Final[str] = (
-    '<div style="background-color:#fff3cd;border-left:4px solid #ffc107;padding:10px 14px;'
-    'margin-bottom:18px;font-family:sans-serif;font-size:12px;color:#856404;line-height:1.4;">'
+    '<div style="background-color:#fff3cd;border-left:4px solid #ffc107;'
+    "padding:10px 14px;"
+    "margin-bottom:18px;font-family:sans-serif;font-size:12px;color:#856404;"
+    'line-height:1.4;">'
     "<strong>⚠️ INTERNER KI-HINWEIS (Vor dem Senden diesen Kasten "
     "löschen):</strong><br>{hinweis}</div>"
 )
@@ -276,6 +343,69 @@ MODELLE_OHNE_SAMPLING_PARAMETER: Final[tuple[str, ...]] = (
 def unterstuetzt_sampling_parameter(model: str) -> bool:
     """True, wenn ``model`` den Parameter ``temperature`` akzeptiert."""
     return not model.startswith(MODELLE_OHNE_SAMPLING_PARAMETER)
+
+
+# ---------------------------------------------------------------------------
+# Gmail-Ingest: Zitat-, Signatur- und Disclaimer-Muster (Abschnitt 3.3 / 3.4)
+# ---------------------------------------------------------------------------
+
+#: charset=-Parameter im Content-Type-Header eines Parts.
+CHARSET_RE: Final[re.Pattern[str]] = re.compile(
+    r"charset\s*=\s*\"?([A-Za-z0-9._-]+)\"?", re.IGNORECASE
+)
+
+#: Zeilenmuster, ab denen alles Folgende als Zitat verworfen wird.
+QUOTE_LINE_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
+    re.compile(r"^>"),
+    re.compile(r"^Am .{5,80} schrieb .*:\s*$"),
+    re.compile(r"^On .{5,80} wrote:\s*$"),
+    re.compile(r"^Le .{5,80} a écrit ?:\s*$"),
+    re.compile(r"^Il .{5,80} ha scritto:\s*$"),
+    re.compile(
+        r"^-{2,}\s*(Original Message|Ursprüngliche Nachricht|Message d'origine"
+        r"|Messaggio originale)\s*-{2,}$"
+    ),
+    re.compile(r"^_{10,}\s*$"),
+)
+#: Outlook-Kopfblock: "Von:"-Zeile, gefolgt innerhalb weniger Zeilen von "Gesendet:".
+OUTLOOK_FROM_RE: Final[re.Pattern[str]] = re.compile(r"^(Von|From|De|Da) ?:.*$")
+OUTLOOK_SENT_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(Gesendet|Sent|Envoyé|Inviato) ?:.*$"
+)
+OUTLOOK_HEADER_LOOKAHEAD: Final[int] = 4
+
+#: Standard-Signatur-Delimiter (RFC 3676).
+SIGNATURE_DELIMITER_RE: Final[re.Pattern[str]] = re.compile(r"^-- $")
+#: Signale der Signatur-Heuristik.
+SIGNATURE_SIGNAL_RES: Final[tuple[re.Pattern[str], ...]] = (
+    re.compile(r"(\+41|0\d{2})[ \d]{7,12}|Tel\.?"),
+    re.compile(r"https?://|www\."),
+    re.compile(r"\b\d{4} [A-ZÄÖÜ][a-zäöü]"),
+    re.compile(r"\b(AG|GmbH|Sàrl|SA|Sagl)\b"),
+)
+SIGNATURE_WINDOW_LINES: Final[int] = 8
+SIGNATURE_MIN_SIGNALS: Final[int] = 2
+SIGNATURE_MAX_FRACTION: Final[float] = 0.5
+GREETING_RE: Final[re.Pattern[str]] = re.compile(
+    r"Freundliche Grüsse|Beste Grüsse|Merci|Cordialement|Meilleures salutations"
+    r"|Cordiali saluti|Best regards"
+)
+DISCLAIMER_RE: Final[re.Pattern[str]] = re.compile(
+    r"(Diese E-Mail enthält vertrauliche|This e-?mail and any attachments"
+    r"|Ce message est confidentiel|Questo messaggio è riservato)"
+)
+
+#: HTML-Tags, die beim Umwandeln in Text einen Zeilenumbruch erzeugen.
+HTML_BLOCK_TAGS: Final[tuple[str, ...]] = ("br", "p", "div", "tr")
+#: HTML-Tags, die samt Inhalt entfernt werden.
+HTML_DROP_TAGS: Final[tuple[str, ...]] = ("script", "style", "head")
+
+#: Gmail-Label, das Entwuerfe markiert.
+GMAIL_DRAFT_LABEL: Final[str] = "DRAFT"
+#: Gmail-Benutzerkennung fuer das authentifizierte Konto.
+GMAIL_USER_ID: Final[str] = "me"
+#: HTTP-Status, bei denen der Adapter mit Backoff wiederholt.
+GMAIL_RETRY_STATUS: Final[frozenset[int]] = frozenset({429, 500, 502, 503, 504})
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,62 @@
+{
+  "id": "18f0a1b2c3d4e5f7",
+  "threadId": "18f0a1b2c3d4e500",
+  "labelIds": [
+    "INBOX",
+    "UNREAD"
+  ],
+  "snippet": "",
+  "internalDate": "1789280100000",
+  "sizeEstimate": 4096,
+  "payload": {
+    "partId": "",
+    "mimeType": "multipart/alternative",
+    "filename": "",
+    "headers": [
+      {
+        "name": "From",
+        "value": "Beat Meier <b.meier@bauleitung-meier.ch>"
+      },
+      {
+        "name": "To",
+        "value": "info@weber-bau.example"
+      },
+      {
+        "name": "Subject",
+        "value": "Maengelruege Fassade Bauvorhaben Urdorf"
+      },
+      {
+        "name": "Date",
+        "value": "Sun, 13 Sep 2026 08:15:00 +0200"
+      },
+      {
+        "name": "Message-ID",
+        "value": "<sia118-0001@bauleitung-meier.ch>"
+      },
+      {
+        "name": "References",
+        "value": "<offerte-0815@weber-bau.example>"
+      }
+    ],
+    "body": {
+      "size": 0
+    },
+    "parts": [
+      {
+        "partId": "0",
+        "mimeType": "text/html",
+        "filename": "",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "text/html; charset=\"UTF-8\""
+          }
+        ],
+        "body": {
+          "size": 635,
+          "data": "PGh0bWw-PGhlYWQ-PHN0eWxlPnB7Y29sb3I6cmVkfTwvc3R5bGU-PC9oZWFkPjxib2R5PjxzY3JpcHQ-YWxlcnQoJ3gnKTwvc2NyaXB0PjxkaXY-R3V0ZW4gVGFnIEhlcnIgV2ViZXI8L2Rpdj48ZGl2Pjxicj48L2Rpdj48cD5BbiBkZXIgRmFzc2FkZSBkZXMgQmF1dm9yaGFiZW5zIGluIFVyZG9yZiB6ZWlnZW4gc2ljaCBSaXNzZSBpbSBWZXJwdXR6LiBXaXIgcnVlZ2VuIGRlbiBNYW5nZWwgaGllcm1pdCBmb3JtZWxsIHVuZCBzZXR6ZW4gSWhuZW4gZ2VtYWVzcyBTSUEgMTE4IGVpbmUgRnJpc3QgYmlzIDI1LiBTZXB0ZW1iZXIgMjAyNiB6dXIgTmFjaGJlc3NlcnVuZy48L3A-PHA-RnJldW5kbGljaGUgR3J1ZXNzZTxicj5CZWF0IE1laWVyPC9wPjxkaXY-PGJyPjwvZGl2PjxkaXY-Vm9uOiBIYW5zIFdlYmVyICZsdDtpbmZvQHdlYmVyLWJhdS5leGFtcGxlJmd0OzwvZGl2PjxkaXY-R2VzZW5kZXQ6IEZyZWl0YWcsIDExLiBTZXB0ZW1iZXIgMjAyNiAwOToxMjwvZGl2PjxkaXY-QW46IEJlYXQgTWVpZXI8L2Rpdj48ZGl2PkJldHJlZmY6IE9mZmVydGUgRmFzc2FkZTwvZGl2PjxkaXY-R3V0ZW4gVGFnIEhlcnIgTWVpZXIsIGFuYmVpIGRpZSBPZmZlcnRlIGZ1ZXIgZGllIEZhc3NhZGUuPC9kaXY-PC9ib2R5PjwvaHRtbD4"
+        }
+      }
+    ]
+  }
+}

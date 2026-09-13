@@ -348,7 +348,15 @@ class MailAdapter(Protocol):
     async def add_label(self, message_id: str, label: str) -> None: ...
 
     async def create_draft(
-        self, *, thread_id: str, subject: str, html_body: str, plain_body: str
+        self,
+        *,
+        thread_id: str,
+        subject: str,
+        html_body: str,
+        plain_body: str,
+        to: str | None = None,
+        in_reply_to: str | None = None,
+        references: str | None = None,
     ) -> str: ...
 
 
@@ -370,7 +378,15 @@ class InMemoryMailAdapter:
         self._labels.setdefault(message_id, set()).add(label)
 
     async def create_draft(
-        self, *, thread_id: str, subject: str, html_body: str, plain_body: str
+        self,
+        *,
+        thread_id: str,
+        subject: str,
+        html_body: str,
+        plain_body: str,
+        to: str | None = None,
+        in_reply_to: str | None = None,
+        references: str | None = None,
     ) -> str:
         self._zaehler += 1
         draft_id = f"draft-{self._zaehler}"
@@ -380,6 +396,9 @@ class InMemoryMailAdapter:
                 "subject": subject,
                 "html_body": html_body,
                 "plain_body": plain_body,
+                "to": to or "",
+                "in_reply_to": in_reply_to or "",
+                "references": references or "",
             }
         )
         return draft_id
@@ -1125,16 +1144,30 @@ class InboxCopilotPipeline:
         audit.gate_codes = [*audit.gate_codes, *draft_report.codes()]
         audit.confidence_2 = entwurf.confidence
 
-        draft_id = await self._adapter.create_draft(
-            thread_id=thread_id,
-            subject=self._betreff(entwurf),
-            html_body=render_html_body(
-                entwurf.hinweis_fuer_inhaber, entwurf.plain_body
-            ),
-            plain_body=render_plain_body(
-                entwurf.hinweis_fuer_inhaber, entwurf.plain_body
-            ),
-        )
+        betreff = self._betreff(entwurf)
+        html_body = render_html_body(entwurf.hinweis_fuer_inhaber, entwurf.plain_body)
+        plain_body = render_plain_body(entwurf.hinweis_fuer_inhaber, entwurf.plain_body)
+        kopf = triage_payload.reply_headers
+        # DECISION: Ohne reply_headers wird der Adapter mit der Phase-1-
+        # Signatur aufgerufen, damit bestehende Adapter (und die Tests aus
+        # Teil 1) unveraendert funktionieren.
+        if kopf is None:
+            draft_id = await self._adapter.create_draft(
+                thread_id=thread_id,
+                subject=betreff,
+                html_body=html_body,
+                plain_body=plain_body,
+            )
+        else:
+            draft_id = await self._adapter.create_draft(
+                thread_id=thread_id,
+                subject=betreff,
+                html_body=html_body,
+                plain_body=plain_body,
+                to=kopf.reply_to_address(),
+                in_reply_to=kopf.message_id_rfc,
+                references=kopf.references,
+            )
         label = (
             self._settings.label_draft_placeholder
             if len(entwurf.platzhalter) >= 1

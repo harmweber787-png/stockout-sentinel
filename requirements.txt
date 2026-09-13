@@ -25,11 +25,3 @@ torch>=2.2
 pytest>=8.0
 # httpx wird vom FastAPI TestClient fuer die API-Integrationstests benoetigt.
 httpx>=0.27
-
-# --- Modul M-1 "Inbox Triage & Drafter" (inbox_copilot/) -------------------
-# Eigenstaendiges Modul: klassifiziert eingehende E-Mails und legt
-# Antwortentwuerfe als Draft an. Es wird nie automatisch gesendet.
-anthropic>=0.40
-pydantic-settings>=2.2
-# Das Eval-Harness des Moduls ist vollstaendig asynchron.
-pytest-asyncio>=0.23

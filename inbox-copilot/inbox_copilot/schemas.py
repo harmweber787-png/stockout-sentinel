@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import warnings
 from datetime import date, datetime
+from email.utils import formataddr
 from enum import StrEnum
 from typing import Any, Final, Literal, cast
 
@@ -23,6 +24,7 @@ __all__ = [
     "AuditRecord",
     "CompanyContext",
     "CompanyProfile",
+    "CustomerConfig",
     "DrafterPayloadV1",
     "DrafterResultV1",
     "Dringlichkeit",
@@ -31,12 +33,14 @@ __all__ = [
     "GateReport",
     "GateSeverity",
     "GateViolation",
+    "Headers",
     "Kategorie",
     "LabelZusatz",
     "Modus",
     "PipelineOutcome",
     "PipelineStatus",
     "Platzhalter",
+    "ProcessingStats",
     "Rechtsfolge",
     "Register",
     "RisikoFlag",
@@ -220,6 +224,58 @@ class CompanyContext(BaseModel):
     location: str
 
 
+class Headers(BaseModel):
+    """RFC-5322-Kopfzeilen der Originalmail, die der Antwort-Draft braucht.
+
+    Wird nie an das Modell uebergeben (``_triage_user_payload`` zaehlt die
+    Felder explizit auf) und nie geloggt.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    message_id_rfc: str | None
+    references: str | None
+    subject: str
+    from_name: str
+    from_email: str
+    to: str
+    date: str | None
+
+    def reply_to_address(self) -> str | None:
+        """Adresse des Absenders als ``Name <adresse>`` fuer den ``To``-Header."""
+        if not self.from_email:
+            return None
+        return formataddr((self.from_name, self.from_email))
+
+
+class CustomerConfig(BaseModel):
+    """Kundendatei ``customers/<name>.yaml``: Kontext + Profil + Mail-Client."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    company_name: str
+    owner_name: str
+    location: str
+    tone_of_voice: str
+    signature_block: str
+    mail_client: Literal["gmail", "outlook_de", "outlook_en"] = "gmail"
+
+    def company_context(self) -> CompanyContext:
+        return CompanyContext(
+            company_name=self.company_name,
+            owner_name=self.owner_name,
+            location=self.location,
+        )
+
+    def company_profile(self) -> CompanyProfile:
+        return CompanyProfile(
+            company_name=self.company_name,
+            owner_name=self.owner_name,
+            tone_of_voice=self.tone_of_voice,
+            signature_block=self.signature_block.rstrip("\n"),
+        )
+
+
 class TriagePayloadV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -231,6 +287,10 @@ class TriagePayloadV1(BaseModel):
     cleaned_body: str
     attachments_meta: list[AttachmentMeta]
     company_context: CompanyContext
+    #: Optional (Phase 1b): Kopfzeilen fuer To / In-Reply-To / References
+    #: des Drafts. Default ``None``, damit Phase-1-Aufrufer unveraendert
+    #: laufen.
+    reply_headers: Headers | None = None
 
 
 class ThreadMessage(BaseModel):
@@ -498,6 +558,8 @@ class AuditRecord(BaseModel):
     thread_id_hash: str
     stage_1_ms: int = 0
     stage_2_ms: int = 0
+    #: Gesamtlatenz inkl. Gmail-Zugriffe; wird vom Service gesetzt.
+    total_ms: int = 0
     tokens_in_1: int = 0
     tokens_out_1: int = 0
     tokens_in_2: int = 0
@@ -523,3 +585,24 @@ class PipelineOutcome(BaseModel):
     labels_set: list[str]
     draft_id: str | None
     audit: AuditRecord
+
+
+# ---------------------------------------------------------------------------
+# Service-Metriken (Abschnitt 5.3) - PII-frei, JSON-serialisierbar
+# ---------------------------------------------------------------------------
+
+
+class ProcessingStats(BaseModel):
+    """Kennzahlen eines Service-Laufs; Andockstelle fuer ein Dashboard."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_started_at: datetime | None = None
+    messages_seen: int = 0
+    by_status: dict[str, int] = Field(default_factory=dict)
+    drafts_created: int = 0
+    escalations: int = 0
+    avg_total_ms: int = 0
+    p95_total_ms: int = 0
+    errors: dict[str, int] = Field(default_factory=dict)
+    last_message_hash_prefix: str | None = None
