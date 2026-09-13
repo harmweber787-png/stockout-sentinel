@@ -1,16 +1,28 @@
-"""Adapter: Inferenz gegen das TimesFM-Foundation-Model.
+"""Adapter: Inferenz gegen das TimesFM-Foundation-Model von Google.
 
-TimesFM (Google Research) ist ein vortrainiertes Zeitreihen-Modell, das
-Nullshot-Prognosen inklusive Quantilen liefert. Der Adapter bindet es als
-*optionale* Technologie an: Das Paket wird erst beim ersten Aufruf geladen.
-Fehlt es, laesst sich das Checkpoint nicht laden oder ist die Historie zu
-kurz, wird :class:`ForecastUnavailable` ausgeloest und die Engine schaltet
-auf den statistischen Schaetzer um. Der Fachkern bleibt davon unberuehrt.
+TimesFM ist das **Hauptmodell** des Dispositions-Service. Bei
+``FORCE_TIMESFM=true`` (Standard) laeuft jede Prognose ueber dieses Modell;
+ein statistischer Rueckfall ist dann vollstaendig blockiert.
 
-Konfiguration ueber Umgebungsvariablen (siehe ``src/config.py``):
-    STOCKOUT_TIMESFM_CHECKPOINT   Repo-ID oder Pfad des Checkpoints
-    STOCKOUT_TIMESFM_BACKEND      "cpu" | "gpu" | "tpu"
-    STOCKOUT_TIMESFM_MIN_KONTEXT  Mindestanzahl Perioden fuer eine Inferenz
+Das Modell wird direkt vom offiziellen Hugging-Face-Checkpoint von Google
+geladen (Standard: ``google/timesfm-2.5-200m-pytorch``). Alternativ kann
+``STOCKOUT_TIMESFM_CHECKPOINT`` auf ein lokal vorgehaltenes
+Modellverzeichnis zeigen - empfohlen fuer Deployments ohne Internetzugang.
+
+Unterstuetzte Paket-Generationen:
+    * **timesfm 3.x / 2.5** (bevorzugt) - ``TimesFM_2p5_200M_torch``:
+      ``from_pretrained(repo_id)`` -> ``compile(ForecastConfig)`` ->
+      ``forecast(horizon, inputs)``.
+    * **timesfm 2.0 / 1.x** (Bestandsinstallationen) - ``TimesFm`` mit
+      ``TimesFmHparams``/``TimesFmCheckpoint`` bzw. flacher Signatur.
+
+Konfiguration (siehe ``src/config.py``):
+    FORCE_TIMESFM                  TimesFM zwingend, kein Fallback
+    STOCKOUT_TIMESFM_CHECKPOINT    HF-Repo-ID oder lokaler Pfad
+    STOCKOUT_TIMESFM_BACKEND       "cpu" | "gpu"
+    STOCKOUT_TIMESFM_MIN_KONTEXT   Mindestanzahl Perioden fuer eine Inferenz
+    STOCKOUT_TIMESFM_MAX_KONTEXT   Maximale Kontextlaenge
+    STOCKOUT_TIMESFM_TORCH_COMPILE ``torch.compile`` aktivieren
 """
 
 from __future__ import annotations
@@ -27,17 +39,33 @@ from src.ports.forecasting import (
     ForecastUnavailable,
 )
 
-__all__ = ["TimesFMForecaster"]
+__all__ = ["TimesFMForecaster", "TimesFMNichtVerfuegbar"]
 
 _LOG = logging.getLogger(__name__)
 
-#: Quantilraster, das TimesFM ausgibt (Index 0 = Mittelwert, 1..9 = 0.1..0.9).
+#: Quantilraster von TimesFM: Index 0 ist die Punktprognose, die Indizes
+#: 1..9 tragen die Quantile 0.1 .. 0.9. Verifiziert gegen timesfm 3.0.2
+#: (``TimesFM_2p5_200M_Definition.quantiles``, ``decode_index = 5``).
 _QUANTILE = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+_INDEX_P50 = 1 + _QUANTILE.index(0.5)  # -> 5
+_INDEX_P90 = 1 + _QUANTILE.index(0.9)  # -> 9
 
-#: Zuordnung Periodenlaenge (Tage) -> TimesFM-Frequenzindikator.
-#: 0 = hochfrequent (taeglich/stuendlich), 1 = mittel (woechentlich/monatlich),
-#: 2 = niederfrequent (quartals-/jahresweise).
+
+class TimesFMNichtVerfuegbar(ForecastUnavailable):
+    """Das TimesFM-Modell konnte nicht geladen oder nicht genutzt werden.
+
+    Im erzwungenen Modus (``FORCE_TIMESFM``) wird dieser Fehler bewusst bis
+    zum Aufrufer durchgereicht, statt ihn durch eine schwaechere Schaetzung
+    zu ueberdecken.
+    """
+
+
 def _frequenz_indikator(periodenlaenge_tage: float) -> int:
+    """TimesFM-Frequenzindikator (nur fuer die 1.x/2.0-API).
+
+    0 = hochfrequent (taeglich), 1 = mittel (woechentlich/monatlich),
+    2 = niederfrequent (quartals-/jahresweise).
+    """
     if periodenlaenge_tage <= 1.5:
         return 0
     if periodenlaenge_tage <= 45.0:
@@ -47,31 +75,66 @@ def _frequenz_indikator(periodenlaenge_tage: float) -> int:
 
 @dataclass
 class TimesFMForecaster:
-    """Prognose-Adapter fuer das TimesFM-Modell (lazy geladen, thread-safe).
+    """Prognose-Adapter fuer TimesFM (thread-safe, Modell wird einmal geladen).
 
     Attributes:
-        checkpoint: Repo-ID oder lokaler Pfad der Modellgewichte.
-        backend: Rechen-Backend ("cpu", "gpu", "tpu").
-        min_kontext: Mindestlaenge der Historie. Darunter ist der
-            statistische Schaetzer verlaesslicher als eine Nullshot-Inferenz.
-        horizon_len: Prognosehorizont in Perioden (wir benoetigen 1).
+        checkpoint: Hugging-Face-Repo-ID oder lokaler Modellpfad.
+        backend: Rechen-Backend ("cpu", "gpu").
+        min_kontext: Mindestlaenge der Historie fuer eine Inferenz.
+        max_kontext: Maximale Kontextlaenge; laengere Reihen werden auf die
+            juengsten Perioden gekuerzt.
+        horizon_len: Prognosehorizont in Perioden (benoetigt wird 1).
+        torch_compile: ``torch.compile`` fuer die Inferenz aktivieren.
+        pflicht: Wenn ``True``, ist dieser Adapter das zwingende Hauptmodell.
+            Fehler werden dann als harte Fehler gemeldet und nie stumm
+            geschluckt.
     """
 
-    checkpoint: str = "google/timesfm-2.0-500m-pytorch"
+    checkpoint: str = "google/timesfm-2.5-200m-pytorch"
     backend: str = "cpu"
-    min_kontext: int = 8
+    min_kontext: int = 2
+    max_kontext: int = 512
     horizon_len: int = 1
+    torch_compile: bool = False
+    pflicht: bool = True
     name: str = "timesfm"
 
     _modell: object | None = field(default=None, init=False, repr=False)
     _geladen: bool = field(default=False, init=False, repr=False)
     _fehler: str | None = field(default=None, init=False, repr=False)
+    _api: str = field(default="", init=False, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
 
     # -- Lebenszyklus ------------------------------------------------------
     def verfuegbar(self) -> bool:
         """Ob das Modell geladen werden konnte. Loest das Laden bei Bedarf aus."""
         return self._lade_modell() is not None
+
+    def lade_oder_scheitere(self) -> None:
+        """Laedt das Modell vorab und wirft bei Misserfolg.
+
+        Wird beim Start des Service aufgerufen, damit ein fehlendes oder
+        nicht ladbares Checkpoint sofort auffaellt und nicht erst beim
+        ersten fachlichen Request.
+
+        Raises:
+            TimesFMNichtVerfuegbar: Wenn das Modell nicht ladbar ist.
+        """
+        if self._lade_modell() is None:
+            raise TimesFMNichtVerfuegbar(
+                f"TimesFM-Checkpoint '{self.checkpoint}' konnte nicht geladen "
+                f"werden: {self._fehler or 'unbekannter Fehler'}"
+            )
+
+    @property
+    def modell_geladen(self) -> bool:
+        """Ob das Modell bereits im Speicher liegt (ohne Ladeversuch)."""
+        return self._modell is not None
+
+    @property
+    def ladefehler(self) -> str | None:
+        """Meldung des letzten Ladeversuchs, falls er scheiterte."""
+        return self._fehler
 
     def _lade_modell(self) -> object | None:
         if self._geladen:
@@ -82,35 +145,70 @@ class TimesFMForecaster:
             self._geladen = True
             try:
                 self._modell = self._baue_modell()
-                _LOG.info("TimesFM-Checkpoint '%s' geladen.", self.checkpoint)
-            except Exception as exc:  # pragma: no cover - umgebungsabhaengig
+                _LOG.info(
+                    "TimesFM-Checkpoint '%s' geladen (API: %s).",
+                    self.checkpoint,
+                    self._api,
+                )
+            except Exception as exc:
                 self._modell = None
                 self._fehler = f"{type(exc).__name__}: {exc}"
-                _LOG.info(
-                    "TimesFM nicht verfuegbar (%s) - statistischer Fallback aktiv.",
-                    self._fehler,
-                )
+                melder = _LOG.error if self.pflicht else _LOG.info
+                melder("TimesFM nicht verfuegbar: %s", self._fehler)
             return self._modell
 
-    def _baue_modell(self) -> object:  # pragma: no cover - benoetigt timesfm
+    # -- Modellaufbau ------------------------------------------------------
+    def _baue_modell(self) -> object:
         """Instanziiert TimesFM ueber die jeweils vorhandene Paket-API."""
-        import timesfm  # type: ignore[import-not-found]
+        import timesfm  # noqa: PLC0415 - bewusst lazy, spart Startzeit
 
-        # TimesFM 2.x: Hparams + Checkpoint-Objekte.
+        if hasattr(timesfm, "TimesFM_2p5_200M_torch"):
+            return self._baue_modell_2p5(timesfm)
+        return self._baue_modell_legacy(timesfm)
+
+    def _baue_modell_2p5(self, timesfm: object) -> object:
+        """timesfm 3.x / 2.5: Hugging-Face-Checkpoint direkt laden."""
+        self._api = "timesfm-2.5"
+        klasse = timesfm.TimesFM_2p5_200M_torch  # type: ignore[attr-defined]
+
+        # Laedt die Gewichte direkt vom HF-Hub (Repo-ID) oder aus einem
+        # lokalen Modellverzeichnis - beides deckt from_pretrained ab.
+        modell = klasse.from_pretrained(self.checkpoint, torch_compile=self.torch_compile)
+
+        modell.compile(
+            timesfm.ForecastConfig(  # type: ignore[attr-defined]
+                max_context=self.max_kontext,
+                max_horizon=self.horizon_len,
+                normalize_inputs=True,
+                use_continuous_quantile_head=True,
+                # Verhindert sich kreuzende Quantile - sonst koennte das
+                # P90 unter das P50 fallen und der Korridor kippen.
+                fix_quantile_crossing=True,
+                # Verbrauchsmengen sind nie negativ.
+                infer_is_positive=True,
+            )
+        )
+        return modell
+
+    def _baue_modell_legacy(self, timesfm: object) -> object:
+        """timesfm 2.0 / 1.x: Bestandsinstallationen weiter bedienen."""
         hparams_cls = getattr(timesfm, "TimesFmHparams", None)
         checkpoint_cls = getattr(timesfm, "TimesFmCheckpoint", None)
+
         if hparams_cls is not None and checkpoint_cls is not None:
-            return timesfm.TimesFm(
+            self._api = "timesfm-2.0"
+            return timesfm.TimesFm(  # type: ignore[attr-defined]
                 hparams=hparams_cls(
                     backend=self.backend,
                     per_core_batch_size=32,
                     horizon_len=self.horizon_len,
+                    context_len=self.max_kontext,
                 ),
                 checkpoint=checkpoint_cls(huggingface_repo_id=self.checkpoint),
             )
 
-        # TimesFM 1.x: flache Signatur.
-        modell = timesfm.TimesFm(
+        self._api = "timesfm-1.x"
+        modell = timesfm.TimesFm(  # type: ignore[attr-defined]
             backend=self.backend,
             per_core_batch_size=32,
             horizon_len=self.horizon_len,
@@ -120,25 +218,33 @@ class TimesFMForecaster:
 
     # -- Inferenz ----------------------------------------------------------
     def prognose(self, serie: ConsumptionSeries) -> DemandForecast:
+        """Fuehrt die TimesFM-Inferenz aus und normiert sie auf 30 Tage.
+
+        Raises:
+            TimesFMNichtVerfuegbar: Wenn das Modell fehlt, die Historie zu
+                kurz ist oder die Inferenz scheitert.
+        """
         if serie.laenge < self.min_kontext:
-            raise ForecastUnavailable(
+            raise TimesFMNichtVerfuegbar(
                 f"Historie zu kurz fuer TimesFM "
                 f"({serie.laenge} < {self.min_kontext} Perioden)."
             )
 
         modell = self._lade_modell()
         if modell is None:
-            raise ForecastUnavailable(
-                f"TimesFM-Modell nicht ladbar ({self._fehler or 'unbekannt'})."
+            raise TimesFMNichtVerfuegbar(
+                f"TimesFM-Modell '{self.checkpoint}' nicht ladbar "
+                f"({self._fehler or 'unbekannter Fehler'})."
             )
 
-        kontext = [np.asarray(serie.werte, dtype=float)]
-        frequenz = [_frequenz_indikator(serie.periodenlaenge_tage)]
+        kontext = np.asarray(serie.werte, dtype=float)[-self.max_kontext :]
 
         try:
-            punkt, quantile = modell.forecast(kontext, freq=frequenz)  # type: ignore[attr-defined]
-        except Exception as exc:  # pragma: no cover - umgebungsabhaengig
-            raise ForecastUnavailable(f"TimesFM-Inferenz fehlgeschlagen: {exc}") from exc
+            punkt, quantile = self._inferiere(modell, kontext, serie)
+        except Exception as exc:
+            raise TimesFMNichtVerfuegbar(
+                f"TimesFM-Inferenz fehlgeschlagen: {type(exc).__name__}: {exc}"
+            ) from exc
 
         p50, p90 = self._extrahiere_quantile(punkt, quantile)
 
@@ -151,28 +257,48 @@ class TimesFMForecaster:
             modell=f"{self.name}:{self.checkpoint}",
         )
 
+    def _inferiere(
+        self, modell: object, kontext: np.ndarray, serie: ConsumptionSeries
+    ) -> tuple[object, object]:
+        """Ruft ``forecast`` in der Signatur der jeweiligen Paket-Generation."""
+        if self._api == "timesfm-2.5":
+            # 2.5 kennt keinen Frequenzindikator; der Horizont ist Pflichtarg.
+            return modell.forecast(horizon=self.horizon_len, inputs=[kontext])  # type: ignore[attr-defined]
+
+        frequenz = [_frequenz_indikator(serie.periodenlaenge_tage)]
+        return modell.forecast([kontext], freq=frequenz)  # type: ignore[attr-defined]
+
     @staticmethod
     def _extrahiere_quantile(punkt: object, quantile: object) -> tuple[float, float]:
         """Liest P50/P90 der ersten Prognoseperiode aus der TimesFM-Ausgabe.
 
-        Die Quantilausgabe hat die Form ``[batch, horizon, 10]`` mit dem
-        Mittelwert an Index 0 und den Quantilen 0.1 .. 0.9 an 1 .. 9.
-        Weicht eine Paketversion davon ab, wird auf die Punktprognose
-        zurueckgefallen.
+        Die Quantilausgabe hat die Form ``[batch, horizon, 10]``: Index 0
+        traegt die Punktprognose, die Indizes 1..9 die Quantile 0.1 .. 0.9.
+
+        Raises:
+            TimesFMNichtVerfuegbar: Wenn die Ausgabe kein auswertbares
+                Quantilraster enthaelt. Ohne P90 laesst sich kein
+                Sicherheitsbestand berechnen - und im erzwungenen Modus
+                darf er nicht statistisch ergaenzt werden.
         """
-        punkt_arr = np.asarray(punkt, dtype=float)
-        p50 = float(punkt_arr.reshape(punkt_arr.shape[0], -1)[0, 0])
+        quantil_array = np.asarray(quantile, dtype=float)
+        if quantil_array.ndim != 3 or quantil_array.shape[-1] <= _INDEX_P90:
+            raise TimesFMNichtVerfuegbar(
+                "TimesFM lieferte kein auswertbares Quantilraster "
+                f"(Form {quantil_array.shape}, erwartet [batch, horizon, >= "
+                f"{_INDEX_P90 + 1}])."
+            )
 
-        try:
-            q = np.asarray(quantile, dtype=float)
-            if q.ndim == 3 and q.shape[-1] >= len(_QUANTILE) + 1:
-                reihe = q[0, 0]
-                p50 = float(reihe[1 + _QUANTILE.index(0.5)])
-                p90 = float(reihe[1 + _QUANTILE.index(0.9)])
-                return p50, p90
-        except (ValueError, IndexError, TypeError):  # pragma: no cover
-            _LOG.debug("Quantilausgabe von TimesFM nicht interpretierbar.")
+        reihe = quantil_array[0, 0]
+        p50 = float(reihe[_INDEX_P50])
+        p90 = float(reihe[_INDEX_P90])
 
-        # Ohne Quantile bleibt nur die Punktprognose; der Sicherheits-
-        # korridor kollabiert dann und die Engine ergaenzt ihn statistisch.
-        return p50, p50
+        # Die Punktprognose dient als Plausibilitaetsanker, falls das
+        # P50-Quantil nicht endlich ist.
+        if not np.isfinite(p50):
+            punkt_array = np.asarray(punkt, dtype=float)
+            p50 = float(punkt_array.reshape(punkt_array.shape[0], -1)[0, 0])
+        if not np.isfinite(p90):
+            p90 = p50
+
+        return p50, p90

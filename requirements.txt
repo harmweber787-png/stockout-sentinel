@@ -9,13 +9,19 @@ numpy>=1.26
 # (POST /api/v1/analyze-csv, multipart/form-data) benoetigt.
 python-multipart>=0.0.9
 
+# --- Prognose: TimesFM ist das zwingende Hauptmodell -----------------------
+# Pflicht-Abhaengigkeiten, nicht optional. Bei FORCE_TIMESFM=true (Standard)
+# laedt der Service das echte Google-Checkpoint von Hugging Face und
+# verweigert den Start, wenn das nicht gelingt - es gibt keinen Fallback.
+#
+# Hinweis zur Imagegroesse: 'torch' zieht von PyPI die CUDA-Variante (mehrere
+# GB). Fuer reine CPU-Deployments stattdessen die schlanke CPU-Variante
+# installieren:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+timesfm>=3.0
+torch>=2.2
+
 # --- Test / QA ------------------------------------------------------------
 pytest>=8.0
 # httpx wird vom FastAPI TestClient fuer die API-Integrationstests benoetigt.
 httpx>=0.27
-
-# --- Optional: neuronale Prognose ----------------------------------------
-# Der TimesFM-Adapter wird zur Laufzeit dynamisch geladen. Ist das Paket
-# nicht installiert, faellt die Engine automatisch und ohne Fehler auf den
-# robusten statistischen Schaetzer zurueck.
-#   pip install "timesfm[torch]"

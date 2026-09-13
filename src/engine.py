@@ -2,16 +2,23 @@
 
 Die Engine ist der Anwendungskern der hexagonalen Architektur. Sie ist
 vollstaendig zustandslos und rein In-Memory: keine Datei-, Datenbank- oder
-Netzwerkzugriffe, kein Caching von Kundendaten zwischen Requests. Ein
-Analyselauf haengt ausschliesslich von den uebergebenen Daten ab.
+Netzwerkzugriffe auf Kundendaten, kein Caching zwischen Requests.
 
-Prognosekette (Strategie ``auto``):
-    1. TimesFM-Inferenz ueber den Foundation-Model-Adapter.
-    2. Bei fehlendem Paket, Ladefehler, zu kurzer Historie oder Inferenz-
-       fehler: robuster statistischer Schaetzer (Trend + P90-Korridor).
-    3. Liefert das primaere Modell keinen Quantil-Korridor (P90 == P50),
-       wird der Korridor aus dem statistischen Schaetzer ergaenzt, damit
-       der Sicherheitsbestand nicht auf 0 kollabiert.
+Prognosekette
+-------------
+**Standardbetrieb (``FORCE_TIMESFM=true``)** - TimesFM ist das zwingende
+Hauptmodell:
+
+* Die Kette besteht ausschliesslich aus dem TimesFM-Adapter.
+* Der statistische Schaetzer ist nicht Teil der Kette und wird auch nicht
+  zur Ergaenzung des Quantil-Korridors herangezogen.
+* Schlaegt die Inferenz fehl, scheitert der Request mit
+  :class:`ForecastUnavailable`. Ein stilles Ausweichen auf eine schwaechere
+  Schaetzung findet nicht statt - eine Dispositionsempfehlung aus einem
+  anderen Modell als dem freigegebenen waere fachlich nicht belastbar.
+
+**Notbetrieb (``FORCE_TIMESFM=false``)** - erlaubt die frueheren Strategien
+``auto`` (TimesFM mit statistischem Fallback) und ``statistisch``.
 """
 
 from __future__ import annotations
@@ -38,9 +45,22 @@ from src.ports.forecasting import (
 )
 from src.schemas import AnalysisResult, SKUInput
 
-__all__ = ["DispositionEngine", "baue_engine", "sortiere_prioritaeten"]
+__all__ = [
+    "DispositionEngine",
+    "PrognoseFehlgeschlagen",
+    "baue_engine",
+    "sortiere_prioritaeten",
+]
 
 _LOG = logging.getLogger(__name__)
+
+
+class PrognoseFehlgeschlagen(ForecastUnavailable):
+    """Fuer einen Artikel liess sich keine gueltige Prognose erzeugen.
+
+    Im erzwungenen TimesFM-Modus wird dieser Fehler bewusst nach aussen
+    gereicht, statt ihn durch einen statistischen Rueckfall zu ueberdecken.
+    """
 
 
 @dataclass(slots=True)
@@ -48,8 +68,8 @@ class DispositionEngine:
     """Berechnet Dispositionskennzahlen fuer einzelne oder viele Artikel.
 
     Attributes:
-        prognose_kette: Geordnete Prognose-Adapter. Der erste Adapter, der
-            ein Ergebnis liefert, gewinnt; die uebrigen sind Fallbacks.
+        prognose_kette: Geordnete Prognose-Adapter. Im erzwungenen Modus
+            enthaelt sie genau einen Eintrag: den TimesFM-Adapter.
         config: Verhaltensparameter der Engine.
     """
 
@@ -59,6 +79,51 @@ class DispositionEngine:
     def __post_init__(self) -> None:
         if not self.prognose_kette:
             raise ValueError("Die Prognosekette darf nicht leer sein.")
+        if self.config.force_timesfm:
+            self._pruefe_erzwungene_kette()
+
+    def _pruefe_erzwungene_kette(self) -> None:
+        """Stellt sicher, dass im Pflichtmodus kein Fallback eingeschleust wird."""
+        fremd = [
+            adapter
+            for adapter in self.prognose_kette
+            if not isinstance(adapter, TimesFMForecaster)
+        ]
+        if fremd:
+            raise ValueError(
+                "FORCE_TIMESFM ist aktiv: die Prognosekette darf ausser TimesFM "
+                f"keinen weiteren Adapter enthalten (gefunden: "
+                f"{', '.join(a.name for a in fremd)})."
+            )
+
+    # -- Startverhalten ----------------------------------------------------
+    def starte(self) -> None:
+        """Bereitet die Prognosekette vor und prueft ihre Einsatzbereitschaft.
+
+        Im erzwungenen Modus wird das TimesFM-Checkpoint hier geladen. Das
+        macht ein fehlendes oder unerreichbares Modell sofort sichtbar,
+        statt erst beim ersten fachlichen Request.
+
+        Raises:
+            ForecastUnavailable: Wenn TimesFM verbindlich ist, sich aber
+                nicht laden laesst.
+        """
+        if not self.config.force_timesfm:
+            return
+        for adapter in self.prognose_kette:
+            if isinstance(adapter, TimesFMForecaster):
+                adapter.lade_oder_scheitere()
+
+    @property
+    def modell_bereit(self) -> bool:
+        """Ob alle Pflichtmodelle geladen sind."""
+        if not self.config.force_timesfm:
+            return True
+        return all(
+            adapter.modell_geladen
+            for adapter in self.prognose_kette
+            if isinstance(adapter, TimesFMForecaster)
+        )
 
     # -- Oeffentliche API --------------------------------------------------
     def analysiere(self, artikel: SKUInput) -> AnalysisResult:
@@ -66,6 +131,8 @@ class DispositionEngine:
 
         Raises:
             ValueError: Wenn die Historie weniger als zwei Perioden enthaelt.
+            ForecastUnavailable: Wenn kein Adapter der Kette eine Prognose
+                liefern konnte (im erzwungenen Modus: wenn TimesFM scheitert).
         """
         serie = baue_serie(
             ((satz.datum, satz.menge) for satz in artikel.historie),
@@ -85,30 +152,49 @@ class DispositionEngine:
     def analysiere_batch(self, artikel: Iterable[SKUInput]) -> list[AnalysisResult]:
         """Analysiert viele Artikel und liefert die sortierte Prioritaetenliste.
 
-        Einzelne fehlerhafte Artikel brechen den Lauf nicht ab; sie werden
-        uebersprungen und protokolliert. Vollstaendige Fehlerlisten liefert
-        die API-Schicht.
+        Raises:
+            ForecastUnavailable: Im erzwungenen TimesFM-Modus, sobald die
+                Inferenz fuer einen Artikel scheitert. Eine Prioritaetenliste,
+                in der einzelne Artikel unbemerkt fehlen, waere fuer die
+                Disposition gefaehrlicher als ein klarer Fehler.
         """
         ergebnisse: list[AnalysisResult] = []
         for eintrag in artikel:
             try:
                 ergebnisse.append(self.analysiere(eintrag))
+            except ForecastUnavailable:
+                if self.config.force_timesfm:
+                    raise
+                _LOG.warning("SKU '%s': keine Prognose moeglich.", eintrag.sku)
             except Exception as exc:  # pragma: no cover - defensiv
+                if self.config.force_timesfm:
+                    raise
                 _LOG.warning("SKU '%s' uebersprungen: %s", eintrag.sku, exc)
         return sortiere_prioritaeten(ergebnisse)
 
     # -- Prognose ----------------------------------------------------------
     def _prognostiziere(self, serie: ConsumptionSeries) -> DemandForecast:
-        """Laeuft die Prognosekette ab und ergaenzt fehlende Quantile."""
+        """Laeuft die Prognosekette ab.
+
+        Im erzwungenen Modus besteht die Kette nur aus TimesFM; ein Fehler
+        wird unveraendert weitergereicht.
+        """
         letzter_fehler: str | None = None
 
         for position, adapter in enumerate(self.prognose_kette):
             try:
                 prognose = adapter.prognose(serie)
             except ForecastUnavailable as exc:
+                if self.config.force_timesfm:
+                    # Kein Ausweichen: TimesFM ist verbindlich.
+                    raise
                 letzter_fehler = str(exc)
                 continue
             except Exception as exc:  # pragma: no cover - defensiv
+                if self.config.force_timesfm:
+                    raise PrognoseFehlgeschlagen(
+                        f"TimesFM-Inferenz fehlgeschlagen: {type(exc).__name__}: {exc}"
+                    ) from exc
                 letzter_fehler = f"{type(exc).__name__}: {exc}"
                 _LOG.warning("Prognose-Adapter '%s' fehlgeschlagen: %s", adapter.name, exc)
                 continue
@@ -123,14 +209,21 @@ class DispositionEngine:
                 )
             return prognose
 
-        raise ForecastUnavailable(
+        raise PrognoseFehlgeschlagen(
             f"Kein Prognose-Adapter lieferte ein Ergebnis ({letzter_fehler})."
         )
 
     def _ergaenze_korridor(
         self, prognose: DemandForecast, serie: ConsumptionSeries
     ) -> DemandForecast:
-        """Haengt einen statistischen P90-Korridor an, falls keiner vorliegt."""
+        """Haengt einen statistischen P90-Korridor an, falls keiner vorliegt.
+
+        Diese Ergaenzung ist selbst ein statistischer Rueckfall und daher im
+        erzwungenen TimesFM-Modus gesperrt. Dort liefert das Modell das
+        Quantilraster; fehlt es, scheitert die Inferenz bereits im Adapter.
+        """
+        if self.config.force_timesfm or not self.config.fallback_erlaubt:
+            return prognose
         if prognose.monatsabsatz_p90 > prognose.monatsabsatz_p50:
             return prognose
 
@@ -200,24 +293,37 @@ def sortiere_prioritaeten(ergebnisse: Sequence[AnalysisResult]) -> list[Analysis
     )
 
 
+def baue_timesfm_adapter(config: EngineConfig) -> TimesFMForecaster:
+    """Baut den TimesFM-Adapter aus der Konfiguration."""
+    return TimesFMForecaster(
+        checkpoint=config.timesfm_checkpoint,
+        backend=config.timesfm_backend,
+        min_kontext=config.timesfm_min_kontext,
+        max_kontext=config.timesfm_max_kontext,
+        torch_compile=config.timesfm_torch_compile,
+        pflicht=config.force_timesfm,
+    )
+
+
 def baue_engine(config: EngineConfig | None = None) -> DispositionEngine:
-    """Factory: baut die Engine samt Prognosekette aus der Konfiguration."""
+    """Factory: baut die Engine samt Prognosekette aus der Konfiguration.
+
+    Bei ``force_timesfm`` besteht die Kette ausschliesslich aus dem
+    TimesFM-Adapter - der statistische Schaetzer wird gar nicht erst
+    instanziiert, damit er auch nicht versehentlich greifen kann.
+    """
     config = config or lade_config()
+    timesfm = baue_timesfm_adapter(config)
+
+    if config.force_timesfm or config.prognose_strategie == "timesfm":
+        return DispositionEngine(prognose_kette=(timesfm,), config=config)
 
     statistisch = StatisticalForecaster(
         daempfung=config.trend_daempfung,
         min_variationskoeffizient=config.min_variationskoeffizient,
     )
-    timesfm = TimesFMForecaster(
-        checkpoint=config.timesfm_checkpoint,
-        backend=config.timesfm_backend,
-        min_kontext=config.timesfm_min_kontext,
-    )
-
     if config.prognose_strategie == "statistisch":
         kette: tuple[ForecastPort, ...] = (statistisch,)
-    elif config.prognose_strategie == "timesfm":
-        kette = (timesfm,)
     else:
         kette = (timesfm, statistisch)
 

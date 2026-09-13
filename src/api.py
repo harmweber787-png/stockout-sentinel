@@ -13,6 +13,7 @@ Betriebseigenschaften:
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Sequence
@@ -24,6 +25,7 @@ from src.adapters.csv_ingest import CSVIngestFehler, lese_csv
 from src.config import lade_config
 from src.domain.disposition import Status
 from src.engine import DispositionEngine, baue_engine
+from src.ports.forecasting import ForecastUnavailable
 from src.schemas import (
     AnalysisResponse,
     AnalysisResult,
@@ -40,6 +42,7 @@ _LOG = logging.getLogger(__name__)
 # haben sich zwischen Versionen geaendert (422 Entity -> Content).
 HTTP_422_UNPROCESSABLE = 422
 HTTP_413_ZU_GROSS = 413
+HTTP_503_MODELL_NICHT_BEREIT = 503
 
 #: Obergrenze fuer CSV-Uploads (Schutz vor Speicherdruck, 64 MiB).
 MAX_CSV_BYTES = 64 * 1024 * 1024
@@ -52,20 +55,58 @@ eine nach Dringlichkeit sortierte Prioritaetenliste.
 * `POST /api/v1/analyze-json` - strukturierte Artikelliste (System-zu-System).
 * `POST /api/v1/analyze-csv`  - CSV-Export eines beliebigen ERP-Systems.
 
+**Prognosemodell:** Im Standardbetrieb (`FORCE_TIMESFM=true`) laeuft jede
+Prognose ueber das TimesFM-Foundation-Model von Google, geladen direkt vom
+Hugging-Face-Checkpoint. Ein Rueckfall auf ein anderes Verfahren ist
+blockiert: laesst sich das Modell nicht laden, startet der Service nicht;
+scheitert eine Inferenz, antwortet der Endpunkt mit `503` statt mit Zahlen
+aus einer Ersatzrechnung.
+
 Der Service ist zustandslos und speichert keine uebergebenen Daten.
 """
 
 
+def _konfiguriere_logging() -> None:
+    """Stellt sicher, dass die Startmeldungen des Service sichtbar sind.
+
+    Ohne Handler auf dem Root-Logger verschwinden INFO-Meldungen - gerade
+    das Laden des Pflichtmodells muss im Betrieb aber nachvollziehbar sein.
+    Eine bereits vorhandene Konfiguration (z. B. durch den Hoster) wird
+    nicht ueberschrieben.
+    """
+    if logging.getLogger().handlers:
+        return
+    logging.basicConfig(
+        level=os.getenv("LOG_LEVEL", "INFO").upper(),
+        format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+    )
+
+
 def erstelle_app(engine: DispositionEngine | None = None) -> FastAPI:
     """Baut die FastAPI-Anwendung (Factory, damit Tests injizieren koennen)."""
+    _konfiguriere_logging()
     @asynccontextmanager
     async def lifespan(laufende_app: FastAPI) -> AsyncIterator[None]:
         """Baut die Engine einmalig beim Start (Prognosekette inklusive)."""
         if laufende_app.state.engine is None:
             laufende_app.state.engine = baue_engine(lade_config())
+        engine = laufende_app.state.engine
+
+        # Ist TimesFM verbindlich, wird das Checkpoint hier geladen. Faellt
+        # das aus, startet der Service bewusst nicht: ein Dispositions-
+        # service, der klaglos mit einem anderen Modell weiterrechnet, waere
+        # schlimmer als einer, der sichtbar nicht hochkommt.
+        if engine.config.force_timesfm:
+            _LOG.info(
+                "FORCE_TIMESFM aktiv - lade Pflichtmodell '%s' ...",
+                engine.config.timesfm_checkpoint,
+            )
+            engine.starte()
+            _LOG.info("Pflichtmodell geladen, Fallback ist blockiert.")
+
         _LOG.info(
             "Stockout-Sentinel bereit. Prognosekette: %s",
-            ", ".join(a.name for a in laufende_app.state.engine.prognose_kette),
+            ", ".join(a.name for a in engine.prognose_kette),
         )
         yield
 
@@ -126,11 +167,16 @@ def _registriere_routen(anwendung: FastAPI) -> None:
     async def health(request: Request) -> dict[str, object]:
         """Meldet Betriebsbereitschaft und die aktive Prognosekette."""
         engine = hole_engine(request)
+        bereit = engine.modell_bereit
         return {
-            "status": "ok",
+            "status": "ok" if bereit else "degraded",
             "version": anwendung.version,
             "prognose_kette": [adapter.name for adapter in engine.prognose_kette],
             "prognose_strategie": engine.config.prognose_strategie,
+            "force_timesfm": engine.config.force_timesfm,
+            "timesfm_checkpoint": engine.config.timesfm_checkpoint,
+            "modell_geladen": bereit,
+            "fallback_erlaubt": engine.config.fallback_erlaubt,
         }
 
     @anwendung.post(
@@ -226,6 +272,26 @@ def _registriere_routen(anwendung: FastAPI) -> None:
     async def _csv_fehler(_: Request, exc: CSVIngestFehler) -> JSONResponse:
         return JSONResponse(
             status_code=HTTP_422_UNPROCESSABLE, content={"detail": str(exc)}
+        )
+
+    @anwendung.exception_handler(ForecastUnavailable)
+    async def _prognose_fehler(_: Request, exc: ForecastUnavailable) -> JSONResponse:
+        """Meldet eine gescheiterte Pflichtprognose als 503.
+
+        Bewusst ein Fehler und kein Ergebnis aus einem Ersatzmodell: die
+        Antwort darf nicht so aussehen, als sei sie von TimesFM gerechnet.
+        """
+        _LOG.error("Prognose nicht moeglich: %s", exc)
+        return JSONResponse(
+            status_code=HTTP_503_MODELL_NICHT_BEREIT,
+            content={
+                "detail": (
+                    "Die Bedarfsprognose konnte nicht erstellt werden. "
+                    "TimesFM ist als Hauptmodell verbindlich (FORCE_TIMESFM), "
+                    "ein Rueckfall auf ein anderes Verfahren ist blockiert. "
+                    f"Ursache: {exc}"
+                )
+            },
         )
 
 

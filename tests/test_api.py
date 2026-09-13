@@ -13,7 +13,9 @@ from src.engine import baue_engine
 @pytest.fixture()
 def client() -> TestClient:
     """TestClient mit deterministischer, rein statistischer Prognosekette."""
-    app = erstelle_app(baue_engine(EngineConfig(prognose_strategie="statistisch")))
+    app = erstelle_app(
+        baue_engine(EngineConfig(force_timesfm=False, prognose_strategie="statistisch"))
+    )
     with TestClient(app) as test_client:
         yield test_client
 
