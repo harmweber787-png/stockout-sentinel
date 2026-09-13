@@ -1,0 +1,15 @@
+.git/
+.github/
+tests/
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+README.md
+pytest.ini
+*.csv
+*.xlsx
