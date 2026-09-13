@@ -23,9 +23,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from src.ports.forecasting import ConsumptionSeries, DemandForecast
+from src.ports.forecasting import ConsumptionSeries, DemandForecast, ForecastPfad
 
 __all__ = ["StatisticalForecaster", "Z_P90"]
+
 
 #: Standardnormal-Quantil fuer 90 % Servicegrad.
 Z_P90 = 1.2815515655446004
@@ -65,14 +66,65 @@ class StatisticalForecaster:
 
         p50_periode = max(0.0, niveau)
         p90_periode = p50_periode + Z_P90 * streuung
+        p10_periode = max(0.0, p50_periode - Z_P90 * streuung)
 
         # Normierung der Periodenprognose auf einen 30-Tage-Monat.
         faktor = serie.perioden_pro_monat
         return DemandForecast(
             monatsabsatz_p50=p50_periode * faktor,
             monatsabsatz_p90=p90_periode * faktor,
+            monatsabsatz_p10=p10_periode * faktor,
             modell=self.name,
         )
+
+    def prognose_pfad(self, serie: ConsumptionSeries, perioden: int) -> ForecastPfad:
+        """Schreibt Trend und Korridor ueber mehrere Perioden fort.
+
+        Der Korridor weitet sich mit dem Horizont: je weiter die Gerade
+        extrapoliert wird, desto staerker schlaegt die Unsicherheit der
+        geschaetzten Steigung durch. Der Faktor ``sqrt(1 + h/n)`` bildet das
+        ab, ohne - wie eine Random-Walk-Annahme - unrealistisch schnell
+        auszufransen.
+        """
+        if perioden < 1:
+            raise ValueError("Der Prognosehorizont muss mindestens 1 Periode betragen.")
+
+        werte = np.asarray(serie.werte, dtype=float)[-self.max_fit_perioden :]
+        n = werte.size
+        steigung, achsenabschnitt, streuung = self._pfad_parameter(werte)
+
+        p10: list[float] = []
+        p50: list[float] = []
+        p90: list[float] = []
+        for schritt in range(1, perioden + 1):
+            daempfung = self.daempfung * min(1.0, (n - 1) / 4.0)
+            index = (n - 1) + daempfung * schritt
+            niveau = max(0.0, achsenabschnitt + steigung * index)
+
+            aufweitung = float(np.sqrt(1.0 + schritt / max(n, 1)))
+            spanne = Z_P90 * streuung * aufweitung
+
+            p50.append(niveau)
+            p90.append(niveau + spanne)
+            p10.append(max(0.0, niveau - spanne))
+
+        return ForecastPfad(
+            p10=tuple(p10),
+            p50=tuple(p50),
+            p90=tuple(p90),
+            periodenlaenge_tage=serie.periodenlaenge_tage,
+            modell=self.name,
+        )
+
+    def _pfad_parameter(self, werte: np.ndarray) -> tuple[float, float, float]:
+        """Liefert ``(steigung, achsenabschnitt, streuung)`` der Trendgeraden."""
+        n = werte.size
+        x = np.arange(n, dtype=float)
+        steigung = _theil_sen_steigung(x, werte)
+        achsenabschnitt = float(np.median(werte - steigung * x))
+        residuen = werte - (achsenabschnitt + steigung * x)
+        niveau = achsenabschnitt + steigung * (n - 1)
+        return steigung, achsenabschnitt, self._robuste_streuung(residuen, werte, niveau)
 
     def _schaetze(self, werte: np.ndarray) -> tuple[float, float]:
         """Liefert ``(niveau, streuung)`` fuer die naechste Periode."""

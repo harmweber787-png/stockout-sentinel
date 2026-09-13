@@ -48,6 +48,7 @@ import numpy as np
 from src.ports.forecasting import (
     ConsumptionSeries,
     DemandForecast,
+    ForecastPfad,
     ForecastUnavailable,
 )
 
@@ -59,6 +60,7 @@ _LOG = logging.getLogger(__name__)
 #: 1..9 tragen die Quantile 0.1 .. 0.9. Verifiziert gegen timesfm 3.0.2
 #: (``TimesFM_2p5_200M_Definition.quantiles``, ``decode_index = 5``).
 _QUANTILE = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+_INDEX_P10 = 1 + _QUANTILE.index(0.1)  # -> 1
 _INDEX_P50 = 1 + _QUANTILE.index(0.5)  # -> 5
 _INDEX_P90 = 1 + _QUANTILE.index(0.9)  # -> 9
 
@@ -102,7 +104,10 @@ class TimesFMForecaster:
         min_kontext: Mindestlaenge der Historie fuer eine Inferenz.
         max_kontext: Maximale Kontextlaenge; laengere Reihen werden auf die
             juengsten Perioden gekuerzt.
-        horizon_len: Prognosehorizont in Perioden (benoetigt wird 1).
+        horizon_len: Prognosehorizont der Dispositionsprognose (1 Periode).
+        max_horizont: Groesster kompilierter Horizont. Begrenzt, wie weit
+            ``prognose_pfad`` in die Zukunft reichen kann. TimesFM rundet
+            intern auf ein Vielfaches der Output-Patchlaenge (128) auf.
         torch_compile: ``torch.compile`` fuer die Inferenz aktivieren.
         pflicht: Wenn ``True``, ist dieser Adapter das zwingende Hauptmodell.
             Fehler werden dann als harte Fehler gemeldet und nie stumm
@@ -115,6 +120,7 @@ class TimesFMForecaster:
     min_kontext: int = 2
     max_kontext: int = 512
     horizon_len: int = 1
+    max_horizont: int = 128
     torch_compile: bool = False
     pflicht: bool = True
     name: str = "timesfm"
@@ -230,7 +236,9 @@ class TimesFMForecaster:
         modell.compile(
             timesfm.ForecastConfig(  # type: ignore[attr-defined]
                 max_context=self.max_kontext,
-                max_horizon=self.horizon_len,
+                # Grosszuegig kompilieren, damit auch mehrschrittige
+                # Prognosepfade ohne erneutes compile() bedient werden.
+                max_horizon=max(self.horizon_len, self.max_horizont),
                 normalize_inputs=True,
                 use_continuous_quantile_head=True,
                 # Verhindert sich kreuzende Quantile - sonst koennte das
@@ -253,7 +261,7 @@ class TimesFMForecaster:
                 hparams=hparams_cls(
                     backend=self.backend,
                     per_core_batch_size=32,
-                    horizon_len=self.horizon_len,
+                    horizon_len=max(self.horizon_len, self.max_horizont),
                     context_len=self.max_kontext,
                 ),
                 checkpoint=checkpoint_cls(huggingface_repo_id=self.quelle()),
@@ -299,42 +307,107 @@ class TimesFMForecaster:
             ) from exc
 
         p50, p90 = self._extrahiere_quantile(punkt, quantile)
+        p10 = float(self._pruefe_quantilraster(quantile)[0, 0, _INDEX_P10])
 
         faktor = serie.perioden_pro_monat
         p50 = max(0.0, p50)
         p90 = max(p50, p90)
+        p10 = min(p50, max(0.0, p10)) if np.isfinite(p10) else p50
         return DemandForecast(
             monatsabsatz_p50=p50 * faktor,
             monatsabsatz_p90=p90 * faktor,
+            monatsabsatz_p10=p10 * faktor,
             # Ausgewiesen wird die tatsaechlich geladene Quelle - eine
             # Dispositionsempfehlung muss nachvollziehbar machen, welche
             # Gewichte sie erzeugt haben.
             modell=f"{self.name}:{self.quelle()}",
         )
 
+    def prognose_pfad(self, serie: ConsumptionSeries, perioden: int) -> ForecastPfad:
+        """Mehrschritt-Prognose fuer die Darstellung des Korridors.
+
+        TimesFM liefert das Quantilraster fuer jede Horizontperiode einzeln -
+        der Korridor entsteht also aus dem Modell selbst und nicht aus einer
+        nachtraeglichen Fortschreibung.
+
+        Raises:
+            TimesFMNichtVerfuegbar: Wenn das Modell fehlt, die Historie zu
+                kurz ist oder die Inferenz scheitert.
+            ValueError: Bei einem Horizont kleiner als 1 Periode.
+        """
+        if perioden < 1:
+            raise ValueError("Der Prognosehorizont muss mindestens 1 Periode betragen.")
+        if serie.laenge < self.min_kontext:
+            raise TimesFMNichtVerfuegbar(
+                f"Historie zu kurz fuer TimesFM "
+                f"({serie.laenge} < {self.min_kontext} Perioden)."
+            )
+
+        modell = self._lade_modell()
+        if modell is None:
+            raise TimesFMNichtVerfuegbar(
+                f"TimesFM-Modell '{self.quelle()}' nicht ladbar "
+                f"({self._fehler or 'unbekannter Fehler'})."
+            )
+
+        horizont = min(perioden, self.max_horizont)
+        kontext = np.asarray(serie.werte, dtype=float)[-self.max_kontext :]
+
+        try:
+            _punkt, quantile = self._inferiere(modell, kontext, serie, horizont=horizont)
+        except Exception as exc:
+            raise TimesFMNichtVerfuegbar(
+                f"TimesFM-Inferenz fehlgeschlagen: {type(exc).__name__}: {exc}"
+            ) from exc
+
+        raster = self._pruefe_quantilraster(quantile)
+        verfuegbar = min(horizont, raster.shape[1])
+
+        p10: list[float] = []
+        p50: list[float] = []
+        p90: list[float] = []
+        for schritt in range(verfuegbar):
+            reihe = raster[0, schritt]
+            median = max(0.0, float(reihe[_INDEX_P50]))
+            p50.append(median)
+            p90.append(max(median, float(reihe[_INDEX_P90])))
+            p10.append(min(median, max(0.0, float(reihe[_INDEX_P10]))))
+
+        return ForecastPfad(
+            p10=tuple(p10),
+            p50=tuple(p50),
+            p90=tuple(p90),
+            periodenlaenge_tage=serie.periodenlaenge_tage,
+            modell=f"{self.name}:{self.quelle()}",
+        )
+
     def _inferiere(
-        self, modell: object, kontext: np.ndarray, serie: ConsumptionSeries
+        self,
+        modell: object,
+        kontext: np.ndarray,
+        serie: ConsumptionSeries,
+        horizont: int = 1,
     ) -> tuple[object, object]:
         """Ruft ``forecast`` in der Signatur der jeweiligen Paket-Generation."""
         if self._api == "timesfm-2.5":
             # 2.5 kennt keinen Frequenzindikator; der Horizont ist Pflichtarg.
-            return modell.forecast(horizon=self.horizon_len, inputs=[kontext])  # type: ignore[attr-defined]
+            return modell.forecast(horizon=horizont, inputs=[kontext])  # type: ignore[attr-defined]
 
         frequenz = [_frequenz_indikator(serie.periodenlaenge_tage)]
         return modell.forecast([kontext], freq=frequenz)  # type: ignore[attr-defined]
 
     @staticmethod
-    def _extrahiere_quantile(punkt: object, quantile: object) -> tuple[float, float]:
-        """Liest P50/P90 der ersten Prognoseperiode aus der TimesFM-Ausgabe.
+    def _pruefe_quantilraster(quantile: object) -> np.ndarray:
+        """Validiert die Quantilausgabe und gibt sie als Array zurueck.
 
-        Die Quantilausgabe hat die Form ``[batch, horizon, 10]``: Index 0
-        traegt die Punktprognose, die Indizes 1..9 die Quantile 0.1 .. 0.9.
+        Die Ausgabe hat die Form ``[batch, horizon, 10]``: Index 0 traegt die
+        Punktprognose, die Indizes 1..9 die Quantile 0.1 .. 0.9.
 
         Raises:
-            TimesFMNichtVerfuegbar: Wenn die Ausgabe kein auswertbares
-                Quantilraster enthaelt. Ohne P90 laesst sich kein
-                Sicherheitsbestand berechnen - und im erzwungenen Modus
-                darf er nicht statistisch ergaenzt werden.
+            TimesFMNichtVerfuegbar: Wenn kein auswertbares Quantilraster
+                vorliegt. Ohne P90 laesst sich kein Sicherheitsbestand
+                berechnen - und im erzwungenen Modus darf er nicht
+                statistisch ergaenzt werden.
         """
         quantil_array = np.asarray(quantile, dtype=float)
         if quantil_array.ndim != 3 or quantil_array.shape[-1] <= _INDEX_P90:
@@ -343,8 +416,12 @@ class TimesFMForecaster:
                 f"(Form {quantil_array.shape}, erwartet [batch, horizon, >= "
                 f"{_INDEX_P90 + 1}])."
             )
+        return quantil_array
 
-        reihe = quantil_array[0, 0]
+    @classmethod
+    def _extrahiere_quantile(cls, punkt: object, quantile: object) -> tuple[float, float]:
+        """Liest P50/P90 der ersten Prognoseperiode aus der TimesFM-Ausgabe."""
+        reihe = cls._pruefe_quantilraster(quantile)[0, 0]
         p50 = float(reihe[_INDEX_P50])
         p90 = float(reihe[_INDEX_P90])
 

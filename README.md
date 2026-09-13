@@ -36,6 +36,18 @@ ausschließlich, was im Request übergeben wird.
 
 ---
 
+## Zwei Zugänge
+
+| Zugang | Start | Für wen |
+|---|---|---|
+| **REST-API** | `uvicorn src.api:app` | System-zu-System: ERP, Planungstools, Batch-Jobs. |
+| **Weboberfläche** | `streamlit run app.py` | Disponentinnen und Disponenten: CSV hochladen, Verlauf ansehen, Prioritätenliste abarbeiten. |
+
+Beide greifen auf dieselbe Engine zu — die Oberfläche rechnet nichts
+eigenständig, sie stellt die Ergebnisse von `src.engine` dar.
+
+---
+
 ## Eigenschaften
 
 | Eigenschaft | Umsetzung |
@@ -90,6 +102,8 @@ austauschbar.
 | `src/adapters/csv_ingest.py` | CSV-Import mit flexibler Spaltenzuordnung. |
 | `src/engine.py` | Anwendungskern: Prognosekette + Priorisierung. |
 | `src/api.py` | FastAPI-Endpunkte. |
+| `app.py` | Streamlit-Oberfläche (Treiber-Adapter wie `api.py`). |
+| `src/demo_daten.py` | Programmatisch erzeugte Demo-Szenarien für die Oberfläche. |
 | `src/config.py` | Laufzeitkonfiguration über Umgebungsvariablen. |
 
 ---
@@ -261,6 +275,64 @@ Das Feld `prognose_modell` jeder Antwort weist die tatsächlich geladene Quelle
 aus — eine Bestellempfehlung muss nachvollziehbar machen, welche Gewichte sie
 erzeugt haben.
 
+## Weboberfläche
+
+```bash
+streamlit run app.py
+```
+
+Erreichbar unter <http://localhost:8501>. Drei Zonen:
+
+**1 · Eingabe** *(Seitenleiste)*
+* **CSV-Upload** — ERP-Export, gleiche flexible Spaltenzuordnung wie
+  `POST /api/v1/analyze-csv`. Die erkannte Zuordnung und alle Importhinweise
+  werden angezeigt.
+* **Demo-Datensätze** — vier Szenarien (gemischtes Sortiment, Engpass,
+  Kapitalbindung, Saison). Sie werden **programmatisch erzeugt**: im
+  Repository liegen weiterhin keine Beispieldateien und keine
+  branchenspezifischen Stammdaten. Die Reihen sind deterministisch, und jedes
+  Szenario lässt sich als CSV herunterladen — nützlich als Formatvorlage.
+* **Prognosehorizont** — Schieberegler, wahlweise in Monaten (1–24) oder
+  Tagen (7–720). Der Horizont wird anhand der erkannten Kadenz in Perioden
+  umgerechnet: 90 Tage sind bei Monatsdaten drei, bei Tagesdaten 90 Perioden.
+
+**2 · Radar** — interaktiver Verlauf (zoom- und schwenkbar, mit Tooltips):
+Ist-Verbrauch, Prognosekurve (Median) und P10–P90-Korridor. Der Korridor
+stammt aus dem Quantilraster des Modells, nicht aus einer nachträglichen
+Schätzung.
+
+**3 · Entscheidung** — Ampel-Tabelle in der Reihenfolge der Prioritätenliste,
+mit Reichweite, Meldebestand, Nachbestellmenge, Sicherheitsbestand und
+Handlungsempfehlung. Nach Status filterbar und als CSV exportierbar.
+
+> Der Horizont ist eine **Darstellungsfrage**. Meldebestand und
+> Nachbestellmenge hängen nicht von ihm ab — sie stammen unverändert aus der
+> Einzelperiodenprognose.
+
+### Oberfläche im Container
+
+Image und Modellgewichte teilen sich API und Oberfläche; nur der Startbefehl
+unterscheidet sich:
+
+```bash
+docker run --rm -p 8501:8501 stockout-sentinel \
+  sh -c "streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
+```
+
+### Prognosemodell in der Oberfläche
+
+Es gelten dieselben Regeln wie in der API: Bei `FORCE_TIMESFM=true` läuft
+jede Prognose über TimesFM. Lässt sich das Modell nicht laden, **zeigt die
+Oberfläche einen Fehler und keine Zahlen** — sie rechnet bewusst nicht mit
+einem Ersatzverfahren weiter. Die Seitenleiste weist Modellstatus und
+Bezugsquelle der Gewichte aus. Zum Ausprobieren ohne Modellgewichte:
+
+```bash
+FORCE_TIMESFM=false STOCKOUT_PROGNOSE_STRATEGIE=statistisch streamlit run app.py
+```
+
+---
+
 ### Tests
 
 ```bash
@@ -271,6 +343,10 @@ Die Suite läuft **ohne Netzzugang und ohne Modellgewichte**: Formeln, CSV-Impor
 und API werden im Notbetrieb geprüft, das Pflichtmodell-Verhalten gegen ein
 Modell-Double mit der verifizierten TimesFM-Ausgabeform. Damit bleibt CI
 unabhängig von der Erreichbarkeit des Hugging-Face-Hubs.
+
+Die Oberfläche wird mit Streamlits `AppTest` geprüft — das Skript läuft dabei
+wirklich, Widgets werden bedient und Ausnahmen sichtbar gemacht; ein Browser
+ist dafür nicht nötig.
 
 ---
 
