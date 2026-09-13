@@ -141,6 +141,68 @@ class TestVerlaufsrahmen:
         assert len(prognose) == 4
 
 
+class TestEingefuegterText:
+    """Copy-&-Paste-Weg: CSV ohne Datei-Dialog (relevant auf Mobilgeraeten)."""
+
+    def test_zeilenenden_und_bom_werden_bereinigt(self) -> None:
+        """Aus Messengern und Notiz-Apps kommt selten sauberer Text."""
+        roh = ui.text_zu_rohdaten("\ufeffArtikel;Bestand\r\nA;1\r\n")
+
+        assert roh == b"Artikel;Bestand\nA;1\n"
+
+    def test_geschuetzte_leerzeichen_werden_ersetzt(self) -> None:
+        roh = ui.text_zu_rohdaten("Artikel;Bestand\nA;1\u00a0000\n")
+
+        assert "\u00a0" not in roh.decode("utf-8")
+
+    def test_leerzeilen_an_den_raendern_fallen_weg(self) -> None:
+        roh = ui.text_zu_rohdaten("\n\n  \nArtikel;Bestand\nA;1\n\n  \n")
+
+        assert roh == b"Artikel;Bestand\nA;1\n"
+
+    @pytest.mark.parametrize("text", ["", "   ", "\n\n", "\ufeff"])
+    def test_leerer_text_ergibt_leere_rohdaten(self, text: str) -> None:
+        assert ui.text_zu_rohdaten(text) == b""
+
+    def test_text_wird_genutzt_wenn_keine_datei_vorliegt(self) -> None:
+        rohdaten, herkunft, hinweis = ui.waehle_csv_quelle(None, None, "A;B\nx;1")
+
+        assert rohdaten == b"A;B\nx;1\n"
+        assert herkunft == "Eingefügter CSV-Text"
+        assert hinweis is None
+
+    def test_datei_hat_vorrang_und_das_wird_gemeldet(self) -> None:
+        """Keine der beiden Eingaben darf stillschweigend verfallen."""
+        rohdaten, herkunft, hinweis = ui.waehle_csv_quelle(
+            b"aus-datei", "export.csv", "auch text"
+        )
+
+        assert rohdaten == b"aus-datei"
+        assert herkunft == "export.csv"
+        assert hinweis and "Datei" in hinweis
+        assert "eingefügter" in hinweis, "Sichtbarer Text braucht echte Umlaute"
+
+    def test_ohne_beides_bleibt_alles_leer(self) -> None:
+        assert ui.waehle_csv_quelle(None, None, None) == (b"", "", None)
+
+    def test_eingefuegter_text_laeuft_durch_den_echten_importer(self) -> None:
+        from src.adapters.csv_ingest import lese_csv
+
+        text = (
+            "Artikel;Bestand;Lieferzeit;2024-01;2024-02;2024-03\r\n"
+            "SNEAKER-42-SW;120;30;55;61;58\r\n"
+            "STIEFEL-41-BR;40;60;12;9;7\r\n"
+        )
+        rohdaten, _herkunft, _hinweis = ui.waehle_csv_quelle(None, None, text)
+
+        ergebnis = lese_csv(rohdaten)
+
+        assert [a.sku for a in ergebnis.artikel] == ["SNEAKER-42-SW", "STIEFEL-41-BR"]
+        assert ergebnis.layout == "breit"
+        assert ergebnis.artikel[0].bestand == 120
+        assert ergebnis.artikel[0].lieferzeit == 30
+
+
 # ---------------------------------------------------------------------------
 # Vollstaendiger Lauf der Oberflaeche
 # ---------------------------------------------------------------------------
@@ -222,6 +284,45 @@ class TestOberflaeche:
 
         assert not at.exception, at.exception
         assert any("keine Datei" in i.value for i in at.sidebar.info)
+
+    def test_textfeld_steht_unter_dem_upload_bereit(self) -> None:
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+        at.sidebar.radio[0].set_value("CSV-Upload").run()
+
+        assert at.sidebar.text_area, "Kein Textfeld zum Einfuegen vorhanden"
+        assert "einfügen" in at.sidebar.text_area[0].label.lower()
+
+    def test_eingefuegter_csv_text_erzeugt_die_ampeltabelle(self) -> None:
+        """Der eigentliche Zweck: Disposition ohne jeden Datei-Dialog."""
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+        at.sidebar.radio[0].set_value("CSV-Upload").run()
+        at.sidebar.text_area[0].set_value(
+            "Artikel;Bestand;Lieferzeit;2024-01;2024-02;2024-03;2024-04\n"
+            "SNEAKER-42-SW;20;30;55;61;58;60\n"
+            "STIEFEL-41-BR;900;60;12;9;7;8\n"
+        ).run()
+
+        assert not at.exception, at.exception
+        assert at.dataframe, "Keine Tabelle nach dem Einfuegen"
+
+        tabelle: pd.DataFrame = at.dataframe[0].value
+        assert set(tabelle["Artikel"]) == {"SNEAKER-42-SW", "STIEFEL-41-BR"}
+        # Knapper Bestand bei 30 Tagen Lieferzeit -> Bestellvorschlag.
+        knapp = tabelle[tabelle["Artikel"] == "SNEAKER-42-SW"].iloc[0]
+        assert knapp["Status"] == "🔴 KRITISCH"
+        assert knapp["Nachbestellmenge"] > 0
+        # Weit gedeckt -> kein Bestellvorschlag.
+        reichlich = tabelle[tabelle["Artikel"] == "STIEFEL-41-BR"].iloc[0]
+        assert reichlich["Nachbestellmenge"] == 0
+
+    def test_unbrauchbarer_text_meldet_einen_fehler(self) -> None:
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+        at.sidebar.radio[0].set_value("CSV-Upload").run()
+        at.sidebar.text_area[0].set_value("nur;irgendwas\n1;2\n").run()
+
+        assert not at.exception, at.exception
+        assert any("nicht lesbar" in e.value for e in at.sidebar.error)
+        assert not at.dataframe
 
 
 @pytest.mark.usefixtures("pflichtmodus")

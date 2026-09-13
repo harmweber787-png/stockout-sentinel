@@ -287,6 +287,12 @@ Erreichbar unter <http://localhost:8501>. Drei Zonen:
 * **CSV-Upload** — ERP-Export, gleiche flexible Spaltenzuordnung wie
   `POST /api/v1/analyze-csv`. Die erkannte Zuordnung und alle Importhinweise
   werden angezeigt.
+* **CSV-Text einfügen** — darunter ein Textfeld für den Weg ohne Datei-Dialog.
+  Auf Mobilgeräten ist das Auswählen einer Datei umständlich, Einfügen aus der
+  Zwischenablage nicht. Der Text wird über `io.StringIO` wie eine Datei
+  gelesen; BOM, geschützte Leerzeichen und gemischte Zeilenenden — die
+  typischen Mitbringsel aus Messengern — werden dabei bereinigt. Liegt beides
+  vor, gewinnt die Datei und die Oberfläche sagt das.
 * **Demo-Datensätze** — vier Szenarien (gemischtes Sortiment, Engpass,
   Kapitalbindung, Saison). Sie werden **programmatisch erzeugt**: im
   Repository liegen weiterhin keine Beispieldateien und keine

@@ -21,6 +21,7 @@ Zum Ausprobieren ohne Modellgewichte: ``FORCE_TIMESFM=false`` setzen.
 
 from __future__ import annotations
 
+import io
 import math
 from datetime import date, timedelta
 
@@ -38,7 +39,13 @@ from src.engine import baue_engine
 from src.ports.forecasting import ForecastPfad, ForecastUnavailable
 from src.schemas import AnalysisResult, SKUInput
 
-__all__ = ["main", "horizont_in_perioden", "verlaufsrahmen"]
+__all__ = [
+    "main",
+    "horizont_in_perioden",
+    "verlaufsrahmen",
+    "text_zu_rohdaten",
+    "waehle_csv_quelle",
+]
 
 TITEL = "Stockout-Sentinel"
 
@@ -73,6 +80,61 @@ def horizont_in_perioden(
         raise ValueError("periodenlaenge_tage muss groesser als 0 sein.")
     perioden = math.ceil(float(horizont_tage) / float(periodenlaenge_tage))
     return max(1, min(int(perioden), int(obergrenze)))
+
+
+def text_zu_rohdaten(text: str) -> bytes:
+    """Bereitet eingefuegten CSV-Text als Bytestrom fuer den Importer auf.
+
+    Beim Kopieren aus Messengern, Notiz-Apps oder von einem Smartphone
+    schleichen sich regelmaessig ein BOM, geschuetzte Leerzeichen und
+    gemischte Zeilenenden ein - Letztere hat diese Codebasis schon einmal
+    Zeit gekostet. ``io.StringIO`` liest den Text zeilenweise wie eine
+    Datei, sodass der Importer denselben Strom bekommt wie bei einem
+    echten Upload.
+    """
+    bereinigt = text.lstrip("\ufeff").replace("\u00a0", " ")
+    zeilen = [zeile.rstrip() for zeile in io.StringIO(bereinigt).readlines()]
+
+    # Leerzeilen an den Raendern entfernen; dazwischenliegende ueberspringt
+    # der Importer selbst.
+    while zeilen and not zeilen[0].strip():
+        zeilen.pop(0)
+    while zeilen and not zeilen[-1].strip():
+        zeilen.pop()
+
+    if not zeilen:
+        return b""
+    return ("\n".join(zeilen) + "\n").encode("utf-8")
+
+
+def waehle_csv_quelle(
+    datei_inhalt: bytes | None, datei_name: str | None, text: str | None
+) -> tuple[bytes, str, str | None]:
+    """Entscheidet zwischen hochgeladener Datei und eingefuegtem Text.
+
+    Die Datei hat Vorrang: sie ist die bewusstere Handlung. Liegt beides
+    vor, wird das gemeldet, statt stillschweigend eine der beiden Eingaben
+    zu verwerfen.
+
+    Returns:
+        ``(rohdaten, herkunft, hinweis)``. ``rohdaten`` ist leer, wenn
+        nichts vorliegt; ``hinweis`` ist gesetzt, wenn beide Wege belegt
+        sind.
+    """
+    hat_text = bool(text and text.strip())
+
+    if datei_inhalt:
+        hinweis = (
+            "Datei und eingefügter Text liegen vor – die Datei wird verwendet."
+            if hat_text
+            else None
+        )
+        return datei_inhalt, (datei_name or "Hochgeladene Datei"), hinweis
+
+    if hat_text:
+        return text_zu_rohdaten(text or ""), "Eingefügter CSV-Text", None
+
+    return b"", "", None
 
 
 def _letztes_datum(artikel: SKUInput) -> date | None:
@@ -239,19 +301,41 @@ def _zone_eingabe() -> tuple[list[SKUInput], dict[str, str], list, str]:
                 "Lager, Vorlaufzeit, ... Lang- und Breitformat werden erkannt."
             ),
         )
-        if datei is not None:
+
+        # Zweiter Weg ohne Datei-Dialog: Auf Mobilgeraeten ist das Auswaehlen
+        # einer Datei umstaendlich, Einfuegen aus der Zwischenablage nicht.
+        eingefuegt = st.sidebar.text_area(
+            "Oder CSV-Text direkt hier einfügen",
+            height=150,
+            placeholder="Artikel;Bestand;Lieferzeit;2024-01;2024-02;...",
+            help=(
+                "CSV-Inhalt kopieren und hier einsetzen - er wird sofort "
+                "gelesen, ganz ohne Datei-Dialog. Gleiche Spaltenerkennung "
+                "wie beim Upload."
+            ),
+        )
+
+        rohdaten, herkunft, hinweis = waehle_csv_quelle(
+            datei.getvalue() if datei is not None else None,
+            datei.name if datei is not None else None,
+            eingefuegt,
+        )
+        if hinweis:
+            st.sidebar.info(hinweis)
+
+        if rohdaten:
             try:
-                ergebnis = lese_csv(datei.getvalue())
+                ergebnis = lese_csv(rohdaten)
             except CSVIngestFehler as exc:
                 st.sidebar.error(f"CSV nicht lesbar: {exc}")
             else:
                 artikel = ergebnis.artikel
                 mapping = ergebnis.spalten_mapping
                 warnungen = ergebnis.warnungen
-                quelle = f"{datei.name} ({ergebnis.layout}format)"
+                quelle = f"{herkunft} ({ergebnis.layout}format)"
                 st.sidebar.success(f"{len(artikel)} Artikel gelesen")
         else:
-            st.sidebar.info("Noch keine Datei gewählt.")
+            st.sidebar.info("Noch keine Datei gewählt und kein Text eingefügt.")
     else:
         titel = {s.titel: s for s in DEMO_SZENARIEN}
         gewaehlt = st.sidebar.selectbox("Szenario", list(titel))
