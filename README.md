@@ -281,7 +281,22 @@ erzeugt haben.
 streamlit run app.py
 ```
 
-Erreichbar unter <http://localhost:8501>. Drei Zonen:
+Erreichbar unter <http://localhost:8501>. Die Oberfläche tritt als
+**„Sentinel B2B · Bestands- & Dispositions-Radar"** auf; Repository, REST-API
+und Paketnamen behalten den technischen Namen `stockout-sentinel`.
+
+Ein einklappbarer **Schnelleinstieg** unter dem Kopf erklärt den Ablauf in drei
+Schritten, und die Fachbegriffe (Meldebestand, Sicherheitsbestand, Reichweite)
+tragen Erklärtexte an Kennzahlen und Tabellenspalten — die Oberfläche soll ohne
+Dispositions-Vorwissen bedienbar sein.
+
+Das Styling kommt als ein `<style>`-Block über `st.html()` und selektiert über
+eigene `sentinel-*`-Klassen sowie Streamlits `data-testid`-Attribute — nie über
+die generierten Hash-Klassen der Styling-Engine, die sich mit jeder Version
+ändern können. Das Signet wird als Base64-Data-URI im CSS eingebunden, weil
+`st.html()` ein `<svg>` im Markup beim Bereinigen entfernt.
+
+Drei Zonen:
 
 **1 · Eingabe** *(Seitenleiste)*
 * **CSV-Upload** — ERP-Export, gleiche flexible Spaltenzuordnung wie

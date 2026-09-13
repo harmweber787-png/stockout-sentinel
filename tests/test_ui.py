@@ -215,7 +215,54 @@ class TestOberflaeche:
         at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
 
         assert not at.exception, at.exception
-        assert at.title[0].value.endswith("Stockout-Sentinel")
+
+    def test_markenkopf_traegt_namen_und_signet(self) -> None:
+        """Der Kopf wird als HTML gerendert - ein Emoji tut es nicht mehr."""
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+
+        bloecke = " ".join(e.value for e in at.get("html"))
+        assert "Sentinel B2B · Bestands- &amp; Dispositions-Radar" in bloecke or (
+            "Sentinel B2B · Bestands- & Dispositions-Radar" in bloecke
+        )
+        assert "sentinel-marke" in bloecke, "Kein Signet im Kopf"
+        assert "📦" not in bloecke, "Das Karton-Emoji ist noch vorhanden"
+
+    def test_signet_wird_ueber_css_eingebunden(self) -> None:
+        """st.html entfernt <svg> beim Bereinigen - der Weg ueber CSS nicht."""
+        import base64
+
+        uri = ui.marke_datauri()
+        assert uri.startswith("data:image/svg+xml;base64,")
+
+        svg = base64.b64decode(uri.split(",", 1)[1]).decode("utf-8")
+        assert svg.startswith("<svg") and svg.rstrip().endswith("</svg>")
+        assert "#10B981" in svg, "Emerald-Akzent fehlt im Signet"
+
+        css = ui.sentinel_css()
+        # Je eine Variante fuer helles und dunkles Theme.
+        assert css.count("data:image/svg+xml;base64") == 2
+
+    def test_stylesheet_wird_mit_festen_klassen_ausgeliefert(self) -> None:
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+
+        bloecke = " ".join(e.value for e in at.get("html"))
+        assert ".sentinel-kopf" in bloecke
+        # Ampelfarben laut Markenvorgabe.
+        for farbe in ("#E11D48", "#F59E0B", "#10B981"):
+            assert farbe in bloecke, f"Ampelfarbe {farbe} fehlt"
+        # Der Kennzahlenwert darf auf schmalen Schirmen nicht abgeschnitten werden.
+        assert 'data-testid="stMetricValue"' in bloecke
+        assert "text-overflow: clip" in bloecke
+
+    def test_schnelleinstieg_erklaert_drei_schritte(self) -> None:
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+
+        beschriftungen = [e.label for e in at.expander]
+        assert any("Schnelleinstieg" in label for label in beschriftungen)
+
+        bloecke = " ".join(e.value for e in at.get("html"))
+        for stichwort in ("Verbrauchsdaten", "TimesFM", "Prioritätenliste"):
+            assert stichwort in bloecke, f"Schritt zu '{stichwort}' fehlt"
 
     def test_alle_drei_zonen_sind_vorhanden(self) -> None:
         at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
@@ -365,6 +412,45 @@ class TestOberflaeche:
         assert not at.exception, at.exception
         assert any("leer" in w.value for w in at.sidebar.warning)
         assert not at.dataframe
+
+    def test_fokuskarte_traegt_den_ampelfarbenen_badge(self) -> None:
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+
+        bloecke = " ".join(e.value for e in at.get("html"))
+        assert "sentinel-karte" in bloecke
+        assert "sentinel-badge--" in bloecke
+
+    def test_artikelnummern_werden_maskiert(self) -> None:
+        """Artikelnummern stammen aus fremden CSV-Dateien - roh eingesetzt
+        waere die Fokuskarte eine HTML-Injektionsstelle."""
+        from src.schemas import AnalysisResult
+
+        boesartig = AnalysisResult(
+            sku='<img src=x onerror="alert(1)">',
+            prognose_tagesbedarf=1.0,
+            reichweite_tage=5.0,
+            meldebestand=10.0,
+            nachbestellmenge=5.0,
+            status="🔴 KRITISCH",
+            status_code="KRITISCH",
+            empfohlene_massnahme="<script>böse()</script>",
+        )
+
+        karte = ui._fokuskarte(boesartig)
+
+        assert "<img" not in karte
+        assert "<script>" not in karte
+        assert "&lt;img" in karte and "&lt;script&gt;" in karte
+
+    def test_erklaertexte_liegen_an_den_kennzahlen(self) -> None:
+        """Die Fachbegriffe muessen ohne Vorwissen verstaendlich sein."""
+        assert "Lieferzeit abzudecken" in ui.ERKLAERUNG["meldebestand"]
+        assert "Pufferreserve" in ui.ERKLAERUNG["sicherheitsbestand"]
+        assert "auf null sinkt" in ui.ERKLAERUNG["reichweite"]
+
+        at = AppTest.from_file(APP_PFAD, default_timeout=ZEITGRENZE).run()
+        hilfetexte = [m.help for m in at.metric if m.help]
+        assert hilfetexte, "Keine Kennzahl traegt einen Erklaertext"
 
     def test_unbrauchbarer_text_meldet_einen_fehler(self) -> None:
         at = self._csv_modus()
