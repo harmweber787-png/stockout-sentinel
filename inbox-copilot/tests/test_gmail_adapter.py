@@ -1,9 +1,12 @@
-"""Phase 1b - GmailAdapter (Google-Client gemockt): A01-A06 und H06-H08."""
+"""Phase 1b - GmailAdapter (Google-Client gemockt): A01-A08 und H06-H08."""
 
 from __future__ import annotations
 
+import asyncio
 import base64
+import json
 import logging
+import random
 import time
 from email import message_from_bytes, policy
 from typing import Any
@@ -38,10 +41,14 @@ from tests.test_pipeline import (
 # ---------------------------------------------------------------------------
 
 
-def http_error(status: int) -> HttpError:
+def http_error(status: int, reason: str | None = None) -> HttpError:
     resp = httplib2.Response({"status": status})
     resp.reason = "Fehler ohne Betreff und Absender"
-    return HttpError(resp, b'{"error": {"message": "generic"}}')
+    fehler: dict[str, Any] = {"message": "generic"}
+    if reason is not None:
+        fehler["errors"] = [{"reason": reason, "domain": "usageLimits"}]
+        fehler["details"] = [{"reason": reason}]
+    return HttpError(resp, json.dumps({"error": fehler}).encode("utf-8"))
 
 
 def mock_service() -> MagicMock:
@@ -305,10 +312,13 @@ async def test_a03_thread_has_draft(settings: Settings) -> None:
 
 
 @pytest.mark.asyncio
-async def test_a04_backoff_429_dritter_versuch_erfolgreich(settings: Settings) -> None:
+async def test_a04_backoff_429_deterministisch(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
     svc = mock_service()
     messages_api(svc).get.return_value.execute.side_effect = [
         http_error(429),
+        http_error(503),
         http_error(429),
         {"id": "m1", "threadId": "t1", "payload": {}},
     ]
@@ -317,22 +327,47 @@ async def test_a04_backoff_429_dritter_versuch_erfolgreich(settings: Settings) -
     async def merke(sekunden: float) -> None:
         schlaf.append(sekunden)
 
-    adapter = GmailAdapter(settings, service=svc, sleep=merke)
+    monkeypatch.setattr(random, "uniform", lambda lo, hi: 0.75)
+    monkeypatch.setattr(asyncio, "sleep", merke)
+    echt = settings.model_copy(update={"gmail_backoff_base_s": 1.0})
+    adapter = GmailAdapter(echt, service=svc)
 
     antwort = await adapter.get_message("m1")
 
     assert antwort["id"] == "m1"
-    assert messages_api(svc).get.return_value.execute.call_count == 3
-    assert schlaf == [0.0, 0.0]  # Basis 0 in Tests; Faktor 1, 2 (, 4)
+    assert messages_api(svc).get.return_value.execute.call_count == 4
+    # 1 s, 2 s, 4 s x Jitter 0.75 - deterministisch durch das Patchen.
+    assert schlaf == [0.75, 1.5, 3.0]
 
 
 @pytest.mark.asyncio
-async def test_a05_drei_5xx_ergeben_mailadaptererror(settings: Settings) -> None:
+async def test_a04b_backoff_deckel_16s(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
     svc = mock_service()
+    messages_api(svc).get.return_value.execute.side_effect = [http_error(503)] * 6
+    schlaf: list[float] = []
+
+    async def merke(sekunden: float) -> None:
+        schlaf.append(sekunden)
+
+    monkeypatch.setattr(random, "uniform", lambda lo, hi: 1.0)
+    monkeypatch.setattr(asyncio, "sleep", merke)
+    echt = settings.model_copy(update={"gmail_backoff_base_s": 1.0})
+    adapter = GmailAdapter(echt, service=svc)
+
+    with pytest.raises(MailAdapterError):
+        await adapter.get_message("m1")
+
+    assert schlaf == [1.0, 2.0, 4.0, 8.0, 16.0]
+
+
+@pytest.mark.asyncio
+async def test_a05_fuenf_5xx_ergeben_mailadaptererror(settings: Settings) -> None:
+    svc = mock_service()
+    versuche = settings.gmail_max_retries + 1
     messages_api(svc).get.return_value.execute.side_effect = [
-        http_error(503),
-        http_error(503),
-        http_error(503),
+        http_error(503) for _ in range(versuche)
     ]
     adapter = adapter_mit(settings, svc)
 
@@ -344,7 +379,40 @@ async def test_a05_drei_5xx_ergeben_mailadaptererror(settings: Settings) -> None
     assert "Betreff" not in str(info.value)
     assert "@" not in str(info.value)
     assert info.value.__cause__ is None
+    assert messages_api(svc).get.return_value.execute.call_count == versuche
+
+
+@pytest.mark.asyncio
+async def test_a07_403_rate_limit_wird_wiederholt(settings: Settings) -> None:
+    svc = mock_service()
+    messages_api(svc).get.return_value.execute.side_effect = [
+        http_error(403, reason="rateLimitExceeded"),
+        http_error(403, reason="userRateLimitExceeded"),
+        {"id": "m1", "threadId": "t1", "payload": {}},
+    ]
+    adapter = adapter_mit(settings, svc)
+
+    antwort = await adapter.get_message("m1")
+
+    assert antwort["id"] == "m1"
     assert messages_api(svc).get.return_value.execute.call_count == 3
+
+
+@pytest.mark.asyncio
+async def test_a08_403_ohne_rate_limit_sofort_forbidden(settings: Settings) -> None:
+    svc = mock_service()
+    messages_api(svc).get.return_value.execute.side_effect = [
+        http_error(403, reason="insufficientPermissions"),
+        {"id": "m1", "threadId": "t1", "payload": {}},
+    ]
+    adapter = adapter_mit(settings, svc)
+
+    with pytest.raises(MailAdapterError) as info:
+        await adapter.get_message("m1")
+
+    assert info.value.code == "FORBIDDEN"
+    assert info.value.status == 403
+    assert messages_api(svc).get.return_value.execute.call_count == 1
 
 
 # ---------------------------------------------------------------------------

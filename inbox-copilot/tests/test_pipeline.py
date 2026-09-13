@@ -1237,7 +1237,15 @@ class ExplodingAdapter(InMemoryMailAdapter):
     """Wirft beim Anlegen des Entwurfs - simuliert einen API-Ausfall."""
 
     async def create_draft(
-        self, *, thread_id: str, subject: str, html_body: str, plain_body: str
+        self,
+        *,
+        thread_id: str,
+        subject: str,
+        html_body: str,
+        plain_body: str,
+        to: str | None = None,
+        in_reply_to: str | None = None,
+        references: str | None = None,
     ) -> str:
         raise RuntimeError(
             "Gmail API 500 fuer Beat Meier b.meier@bauleitung-meier.ch Fassade"

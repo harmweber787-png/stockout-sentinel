@@ -12,6 +12,7 @@ import asyncio
 import base64
 import json
 import logging
+import random
 from collections.abc import Callable
 from email.message import EmailMessage
 from typing import Any, Protocol
@@ -21,6 +22,7 @@ from googleapiclient.errors import HttpError
 
 from inbox_copilot.config import (
     GMAIL_DRAFT_LABEL,
+    GMAIL_RATE_LIMIT_REASONS,
     GMAIL_RETRY_STATUS,
     GMAIL_USER_ID,
     Settings,
@@ -157,7 +159,7 @@ class GmailAdapter:
         self._auth = auth
         self._service = service
         self._label_ids: dict[str, str] = {}
-        self._sleep = sleep or asyncio.sleep
+        self._sleep = sleep
 
     # --- Infrastruktur ------------------------------------------------------
 
@@ -167,29 +169,41 @@ class GmailAdapter:
         return self._service
 
     async def _call(self, request_factory: Callable[[Any], Any]) -> Any:
-        """Fuehrt ``request_factory(service).execute()`` mit Backoff aus."""
-        attempts = max(1, self._settings.gmail_max_attempts)
-        for versuch in range(attempts):
+        """Fuehrt ``request_factory(service).execute()`` mit Backoff aus.
+
+        Wiederholt wird bei 429, 5xx und 403 mit Rate-Limit-Grund; jedes
+        andere 403 ist sofort ``FORBIDDEN``. Wartezeit
+        ``min(base * 2**n, max) * uniform(*jitter)``.
+        """
+        max_retries = max(0, self._settings.gmail_max_retries)
+        for versuch in range(max_retries + 1):
             try:
                 return await asyncio.to_thread(
                     lambda: request_factory(self._svc()).execute()
                 )
             except HttpError as fehler:
                 status = _http_status(fehler)
-                if status in GMAIL_RETRY_STATUS and versuch < attempts - 1:
-                    wartezeit = self._settings.gmail_backoff_base_s * (2**versuch)
-                    _LOG.warning(
-                        json.dumps(
-                            {
-                                "event": "gmail_retry",
-                                "status": status,
-                                "attempt": versuch + 1,
-                            }
-                        )
+                if status == 403 and not _ist_rate_limit(fehler):
+                    raise MailAdapterError("FORBIDDEN", status) from None
+                wiederholbar = status in GMAIL_RETRY_STATUS or status == 403
+                if not wiederholbar or versuch >= max_retries:
+                    raise MailAdapterError(f"GMAIL_HTTP_{status}", status) from None
+                wartezeit = min(
+                    self._settings.gmail_backoff_base_s * (2**versuch),
+                    self._settings.gmail_backoff_max_s,
+                ) * random.uniform(*self._settings.gmail_jitter)
+                _LOG.warning(
+                    json.dumps(
+                        {
+                            "event": "gmail_retry",
+                            "status": status,
+                            "attempt": versuch + 1,
+                            "wait_s": round(wartezeit, 3),
+                        }
                     )
-                    await self._sleep(wartezeit)
-                    continue
-                raise MailAdapterError(f"GMAIL_HTTP_{status}", status) from None
+                )
+                schlaf = self._sleep if self._sleep is not None else asyncio.sleep
+                await schlaf(wartezeit)
             except (OSError, TimeoutError):
                 raise MailAdapterError("GMAIL_TRANSPORT") from None
         raise MailAdapterError("GMAIL_RETRY_EXHAUSTED")  # pragma: no cover
@@ -398,3 +412,28 @@ def _http_status(fehler: HttpError) -> int:
         return int(status) if status is not None else 0
     except (TypeError, ValueError):
         return 0
+
+
+def _ist_rate_limit(fehler: HttpError) -> bool:
+    """403 mit Rate-Limit-``reason`` (aus error_details oder dem JSON-Body)."""
+    gruende: set[str] = set()
+    details = getattr(fehler, "error_details", None)
+    if isinstance(details, list):
+        for eintrag in details:
+            if isinstance(eintrag, dict) and eintrag.get("reason"):
+                gruende.add(str(eintrag["reason"]))
+    inhalt = getattr(fehler, "content", b"")
+    try:
+        daten = json.loads(
+            inhalt if isinstance(inhalt, str) else inhalt.decode("utf-8")
+        )
+    except (ValueError, UnicodeDecodeError, AttributeError):
+        daten = {}
+    if isinstance(daten, dict):
+        error = daten.get("error")
+        if isinstance(error, dict):
+            for schluessel in ("errors", "details"):
+                for eintrag in error.get(schluessel) or []:
+                    if isinstance(eintrag, dict) and eintrag.get("reason"):
+                        gruende.add(str(eintrag["reason"]))
+    return bool(gruende & GMAIL_RATE_LIMIT_REASONS)

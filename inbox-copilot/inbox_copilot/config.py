@@ -40,6 +40,7 @@ __all__ = [
     "FORBIDDEN_FR",
     "FORBIDDEN_IT",
     "GMAIL_DRAFT_LABEL",
+    "GMAIL_RATE_LIMIT_REASONS",
     "GMAIL_RETRY_STATUS",
     "GMAIL_USER_ID",
     "GREETING_RE",
@@ -128,8 +129,12 @@ class Settings(BaseSettings):
     gmail_credentials_path: Path = Path("secrets/oauth_client.json")
     gmail_token_path: Path = Path("secrets/token.json")
     gmail_state_path: Path = Path("state/gmail_state.json")
-    gmail_backoff_base_s: float = 1.0  # 1 s, 2 s, 4 s
-    gmail_max_attempts: int = 3
+    # Backoff: max. gmail_max_retries Wiederholungen nach dem Erstversuch,
+    # Wartezeit min(base * 2**n, max) * random.uniform(*jitter) -> 1/2/4/8/16 s.
+    gmail_max_retries: int = 5
+    gmail_backoff_base_s: float = 1.0
+    gmail_backoff_max_s: float = 16.0
+    gmail_jitter: tuple[float, float] = (0.5, 1.5)
     poll_interval_s: int = 60
     poll_query: str = "in:inbox -category:promotions -category:social newer_than:2d"
     poll_max_messages: int = 50
@@ -404,8 +409,13 @@ HTML_DROP_TAGS: Final[tuple[str, ...]] = ("script", "style", "head")
 GMAIL_DRAFT_LABEL: Final[str] = "DRAFT"
 #: Gmail-Benutzerkennung fuer das authentifizierte Konto.
 GMAIL_USER_ID: Final[str] = "me"
-#: HTTP-Status, bei denen der Adapter mit Backoff wiederholt.
+#: HTTP-Status, bei denen der Adapter immer mit Backoff wiederholt (429, 5xx).
 GMAIL_RETRY_STATUS: Final[frozenset[int]] = frozenset({429, 500, 502, 503, 504})
+#: 403-Gruende (error.details / errors[].reason), die ein Rate-Limit anzeigen
+#: und deshalb ebenfalls wiederholt werden. Jedes andere 403 ist FORBIDDEN.
+GMAIL_RATE_LIMIT_REASONS: Final[frozenset[str]] = frozenset(
+    {"rateLimitExceeded", "userRateLimitExceeded"}
+)
 
 
 # ---------------------------------------------------------------------------

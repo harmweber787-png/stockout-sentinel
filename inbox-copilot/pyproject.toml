@@ -48,16 +48,6 @@ python_version = "3.11"
 strict = true
 packages = ["inbox_copilot", "tests"]
 
-# tests/test_pipeline.py ist die unveraenderte Suite aus Teil 1. Ihr
-# ExplodingAdapter ueberschreibt create_draft noch mit der Phase-1-Signatur;
-# seit Phase 1b (Abschnitt 4.4) hat InMemoryMailAdapter drei zusaetzliche
-# optionale Parameter. Der Aufruf bleibt kompatibel (die Pipeline nutzt die
-# alte Signatur, wenn keine reply_headers vorliegen); nur die Override-
-# Pruefung wird fuer genau dieses Modul abgeschaltet.
-[[tool.mypy.overrides]]
-module = ["tests.test_pipeline"]
-disable_error_code = ["override"]
-
 [[tool.mypy.overrides]]
 module = [
     "googleapiclient.*",
