@@ -13,3 +13,7 @@ README.md
 pytest.ini
 *.csv
 *.xlsx
+
+# Modellgewichte gehoeren nie ins Repository oder in den Build-Kontext.
+models/
+*.safetensors

@@ -24,8 +24,12 @@ ausschließlich, was im Request übergeben wird.
 > * Scheitert eine Inferenz zur Laufzeit, antwortet der Endpunkt mit **`503`** —
 >   nicht mit Zahlen aus einem Ersatzverfahren.
 > * Damit ist die Verfügbarkeit der Disposition an die Verfügbarkeit des
->   Modells gekoppelt. Für Deployments ohne Internetzugang die Gewichte ins
->   Image backen oder als Volume mounten (siehe [Modellgewichte](#modellgewichte)).
+>   Modells gekoppelt.
+>
+> **Das Container-Image entschärft das:** Die Gewichte werden beim Build fest
+> eingebacken, die Laufzeit ist strikt offline gestellt. Ein gebautes Image
+> braucht für den Betrieb **keinerlei Netzzugang** — siehe
+> [Autarkes Container-Image](#autarkes-container-image).
 >
 > Für einen Notbetrieb lässt sich der Schalter mit `FORCE_TIMESFM=false`
 > abschalten; dann greift wieder die frühere Kette mit statistischem Rückfall.
@@ -187,45 +191,75 @@ OpenAPI-Schema: <http://127.0.0.1:8000/openapi.json>
 > `pip install torch --index-url https://download.pytorch.org/whl/cpu`
 > Das Dockerfile tut das bereits standardmäßig.
 
-### Docker
+### Autarkes Container-Image
 
 ```bash
 docker build -t stockout-sentinel .
 docker run --rm -p 8000:8000 stockout-sentinel
 ```
 
-Das Image ist zweistufig gebaut, enthält keinen Compiler und läuft als
-nicht-privilegierter Nutzer. Cloud-Runtimes (Cloud Run, App Service, Fly.io)
-geben den Port über `$PORT` vor; die Worker-Zahl steuert `$WEB_CONCURRENCY`
-(Standard `1` — jeder Worker hält eine eigene Modellkopie im Speicher).
+Das Image ist nach dem Build **vollständig netzunabhängig**. Der Build bäckt
+das TimesFM-Checkpoint fest ins Dateisystem, die Laufzeit ist strikt offline
+gestellt:
 
-Für GPU-Images die CUDA-Wheels wählen:
+| Schritt | Was passiert |
+|---|---|
+| **Build** | `snapshot_download('google/timesfm-2.5-200m-pytorch')` → `/app/models/timesfm-checkpoint` |
+| **Build-Guard** | Fehlt `model.safetensors`, **bricht der Build ab** — ein Image ohne Gewichte könnte zur Laufzeit nicht starten. |
+| **Laufzeit** | `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`; der Adapter lädt aus `$MODEL_DIR`. |
+
+Das kostet ~1 GB Imagegröße und kauft dafür: keinen Download beim Containerstart,
+keine Abhängigkeit von der Erreichbarkeit des HF-Hubs im Betrieb, reproduzierbare
+Gewichte über alle Replicas, und Lauffähigkeit in abgeschotteten Netzen.
+
+Nachprüfen lässt sich der Bezugsweg über `/health`:
+
+```json
+{ "timesfm_quelle": "/app/models/timesfm-checkpoint",
+  "modell_lokal_eingebacken": true,
+  "offline_modus": true }
+```
+
+PyTorch kommt aus dem CPU-Wheel-Index. Für GPU-Images:
 
 ```bash
 docker build --build-arg TORCH_INDEX_URL=https://pypi.org/simple \
              -t stockout-sentinel-gpu .
 ```
 
-### Modellgewichte
-
-Der Start lädt das Checkpoint vom Hugging-Face-Hub. Für abgeschottete
-Umgebungen und schnelle Kaltstarts gibt es zwei Alternativen:
-
-```dockerfile
-# a) Gewichte ins Image backen (vergrößert es um ~1 GB)
-RUN python -c "import timesfm; \
-    timesfm.TimesFM_2p5_200M_torch.from_pretrained('google/timesfm-2.5-200m-pytorch')"
-```
+Ein anderes Checkpoint lässt sich beim Build einbacken:
 
 ```bash
-# b) Gewichte als Volume mounten und lokal laden
-docker run -v /opt/timesfm:/models:ro \
-           -e STOCKOUT_TIMESFM_CHECKPOINT=/models/timesfm-2.5-200m \
+docker build --build-arg TIMESFM_REPO_ID=<repo-id> -t stockout-sentinel .
+```
+
+Cloud-Runtimes (Cloud Run, App Service, Fly.io) geben den Port über `$PORT` vor.
+`WEB_CONCURRENCY` steht auf `1`, weil jeder Worker eine eigene Modellkopie im
+Speicher hält.
+
+### Bezugsquelle der Modellgewichte
+
+Der Adapter löst die Quelle in dieser Reihenfolge auf:
+
+1. **`MODEL_DIR`** — wenn das Verzeichnis existiert *und* eine Gewichtsdatei
+   (`model.safetensors`, `pytorch_model.bin` oder `model.ckpt`) enthält. Ein
+   leeres Verzeichnis — etwa ein Volume-Mount, der nicht gegriffen hat — wird
+   bewusst **nicht** akzeptiert, sonst scheiterte das Laden mit einer
+   irreführenden Meldung.
+2. **`STOCKOUT_TIMESFM_CHECKPOINT`** — HF-Repo-ID oder ebenfalls ein lokaler Pfad.
+3. Andernfalls das Standard-Checkpoint `google/timesfm-2.5-200m-pytorch`.
+
+Gewichte außerhalb des Images (z. B. auf einem gemeinsamen Volume) lassen sich
+so einhängen:
+
+```bash
+docker run -v /opt/timesfm:/models:ro -e MODEL_DIR=/models \
            -p 8000:8000 stockout-sentinel
 ```
 
-`STOCKOUT_TIMESFM_CHECKPOINT` akzeptiert sowohl eine HF-Repo-ID als auch einen
-lokalen Verzeichnispfad.
+Das Feld `prognose_modell` jeder Antwort weist die tatsächlich geladene Quelle
+aus — eine Bestellempfehlung muss nachvollziehbar machen, welche Gewichte sie
+erzeugt haben.
 
 ### Tests
 
@@ -257,12 +291,20 @@ Liveness- und Readiness-Probe. Meldet die aktive Prognosekette.
   "force_timesfm": true,
   "timesfm_checkpoint": "google/timesfm-2.5-200m-pytorch",
   "modell_geladen": true,
-  "fallback_erlaubt": false
+  "fallback_erlaubt": false,
+  "timesfm_quelle": "/app/models/timesfm-checkpoint",
+  "modell_lokal_eingebacken": true,
+  "offline_modus": true
 }
 ```
 
-`status` ist `"degraded"`, solange das Pflichtmodell nicht geladen ist. Der
-Docker-HEALTHCHECK wertet `modell_geladen` aus.
+| Feld | Bedeutung |
+|---|---|
+| `status` | `"degraded"`, solange das Pflichtmodell nicht geladen ist. |
+| `modell_geladen` | Wird vom Docker-HEALTHCHECK ausgewertet. |
+| `timesfm_quelle` | Tatsächlich geladenes Checkpoint (lokaler Pfad oder Repo-ID). |
+| `modell_lokal_eingebacken` | `true`, wenn aus `MODEL_DIR` geladen wurde. |
+| `offline_modus` | Spiegelt `HF_HUB_OFFLINE=1` wider. |
 
 ---
 
@@ -429,7 +471,10 @@ Standardwerte sind produktionstauglich.
 | Variable | Standard | Bedeutung |
 |---|---|---|
 | **`FORCE_TIMESFM`** | **`true`** | **TimesFM ist Pflichtmodell, jeder Rückfall blockiert.** `false` schaltet den Notbetrieb frei. |
-| `STOCKOUT_TIMESFM_CHECKPOINT` | `google/timesfm-2.5-200m-pytorch` | HF-Repo-ID **oder** lokaler Pfad der Modellgewichte. |
+| **`MODEL_DIR`** | `/app/models/timesfm-checkpoint` | Verzeichnis der eingebackenen Gewichte. Hat Vorrang, sofern vorhanden und befüllt. |
+| `HF_HUB_OFFLINE` | `1` *(im Image)* | Unterbindet jeden Hub-Zugriff zur Laufzeit. |
+| `TRANSFORMERS_OFFLINE` | `1` *(im Image)* | Dito für die Transformers-Bibliotheken. |
+| `STOCKOUT_TIMESFM_CHECKPOINT` | `google/timesfm-2.5-200m-pytorch` | HF-Repo-ID **oder** lokaler Pfad; greift, wenn `MODEL_DIR` fehlt. |
 | `STOCKOUT_TIMESFM_BACKEND` | `cpu` | `cpu`, `gpu`. |
 | `STOCKOUT_TIMESFM_MIN_KONTEXT` | `2` (Pflichtmodus) / `8` | Mindestzahl Perioden für eine Inferenz. Im Pflichtmodus bewusst auf dem Schema-Minimum, damit wirklich jeder Artikel über TimesFM läuft — das Modell padded kürzere Kontexte selbst. |
 | `STOCKOUT_TIMESFM_MAX_KONTEXT` | `512` | Maximale Kontextlänge; längere Reihen werden auf die jüngsten Perioden gekürzt. |
@@ -473,9 +518,16 @@ Der Adapter erkennt die installierte Paketgeneration selbst:
 ### Verfügbarkeitsrisiko
 
 Mit blockiertem Fallback ist die Disposition nur so verfügbar wie das Modell.
-Fällt das Laden aus — gesperrter Egress, HF-Ausfall, fehlendes Volume —, steht
-der Service vollständig. Das ist die bewusste fachliche Entscheidung hinter
-`FORCE_TIMESFM`: lieber sichtbar nicht antworten als eine Bestellempfehlung
-ausgeben, die nicht aus dem freigegebenen Modell stammt. Wer das Risiko senken
-will, backt die Gewichte ins Image (siehe [Modellgewichte](#modellgewichte))
-statt sie beim Start zu ziehen.
+Das ist die bewusste fachliche Entscheidung hinter `FORCE_TIMESFM`: lieber
+sichtbar nicht antworten als eine Bestellempfehlung ausgeben, die nicht aus dem
+freigegebenen Modell stammt.
+
+Das Container-Image verlagert dieses Risiko vom Betrieb in den Build: Die
+Gewichte sind eingebacken, ein fehlendes Checkpoint lässt schon den **Build**
+scheitern statt später einen Containerstart. Zur Laufzeit bleibt als
+Ausfallursache nur noch ein defektes Image — kein Netzproblem, kein HF-Ausfall,
+kein nicht gegriffener Volume-Mount.
+
+Wer den Service dagegen ohne das Image betreibt (`uvicorn` direkt, ohne
+`MODEL_DIR`), holt das Checkpoint beim Start vom Hub und handelt sich die
+Netzabhängigkeit wieder ein.

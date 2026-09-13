@@ -297,6 +297,7 @@ def baue_timesfm_adapter(config: EngineConfig) -> TimesFMForecaster:
     """Baut den TimesFM-Adapter aus der Konfiguration."""
     return TimesFMForecaster(
         checkpoint=config.timesfm_checkpoint,
+        model_dir=config.model_dir,
         backend=config.timesfm_backend,
         min_kontext=config.timesfm_min_kontext,
         max_kontext=config.timesfm_max_kontext,

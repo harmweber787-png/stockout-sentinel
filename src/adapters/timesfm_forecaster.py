@@ -4,10 +4,19 @@ TimesFM ist das **Hauptmodell** des Dispositions-Service. Bei
 ``FORCE_TIMESFM=true`` (Standard) laeuft jede Prognose ueber dieses Modell;
 ein statistischer Rueckfall ist dann vollstaendig blockiert.
 
-Das Modell wird direkt vom offiziellen Hugging-Face-Checkpoint von Google
-geladen (Standard: ``google/timesfm-2.5-200m-pytorch``). Alternativ kann
-``STOCKOUT_TIMESFM_CHECKPOINT`` auf ein lokal vorgehaltenes
-Modellverzeichnis zeigen - empfohlen fuer Deployments ohne Internetzugang.
+Bezugsquelle der Gewichte (in dieser Reihenfolge):
+
+1. **``MODEL_DIR``** - ein lokal vorgehaltenes Modellverzeichnis. Liegt es
+   vor, hat es Vorrang. Das Container-Image backt die Gewichte beim Build
+   dorthin, sodass die Laufzeit ohne jeden Netzzugang auskommt
+   (``HF_HUB_OFFLINE=1``).
+2. **``STOCKOUT_TIMESFM_CHECKPOINT``** - Repo-ID des Hugging-Face-Hubs oder
+   ebenfalls ein lokaler Pfad.
+3. Andernfalls das offizielle Google-Checkpoint
+   ``google/timesfm-2.5-200m-pytorch``.
+
+``from_pretrained`` erkennt lokale Verzeichnisse selbst, sodass beide Wege
+denselben Codepfad nutzen.
 
 Unterstuetzte Paket-Generationen:
     * **timesfm 3.x / 2.5** (bevorzugt) - ``TimesFM_2p5_200M_torch``:
@@ -18,6 +27,7 @@ Unterstuetzte Paket-Generationen:
 
 Konfiguration (siehe ``src/config.py``):
     FORCE_TIMESFM                  TimesFM zwingend, kein Fallback
+    MODEL_DIR                      lokales Modellverzeichnis (Vorrang)
     STOCKOUT_TIMESFM_CHECKPOINT    HF-Repo-ID oder lokaler Pfad
     STOCKOUT_TIMESFM_BACKEND       "cpu" | "gpu"
     STOCKOUT_TIMESFM_MIN_KONTEXT   Mindestanzahl Perioden fuer eine Inferenz
@@ -28,8 +38,10 @@ Konfiguration (siehe ``src/config.py``):
 from __future__ import annotations
 
 import logging
+import os
 import threading
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 
@@ -49,6 +61,9 @@ _LOG = logging.getLogger(__name__)
 _QUANTILE = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 _INDEX_P50 = 1 + _QUANTILE.index(0.5)  # -> 5
 _INDEX_P90 = 1 + _QUANTILE.index(0.9)  # -> 9
+
+#: Dateien, an denen ein lokales Modellverzeichnis erkannt wird.
+_GEWICHTSDATEIEN = ("model.safetensors", "pytorch_model.bin", "model.ckpt")
 
 
 class TimesFMNichtVerfuegbar(ForecastUnavailable):
@@ -79,6 +94,10 @@ class TimesFMForecaster:
 
     Attributes:
         checkpoint: Hugging-Face-Repo-ID oder lokaler Modellpfad.
+        model_dir: Lokal gebackenes Modellverzeichnis. Existiert es und
+            enthaelt es Gewichte, wird es dem ``checkpoint`` vorgezogen -
+            damit laeuft ein Image mit eingebackenen Gewichten vollstaendig
+            offline.
         backend: Rechen-Backend ("cpu", "gpu").
         min_kontext: Mindestlaenge der Historie fuer eine Inferenz.
         max_kontext: Maximale Kontextlaenge; laengere Reihen werden auf die
@@ -91,6 +110,7 @@ class TimesFMForecaster:
     """
 
     checkpoint: str = "google/timesfm-2.5-200m-pytorch"
+    model_dir: str | None = None
     backend: str = "cpu"
     min_kontext: int = 2
     max_kontext: int = 512
@@ -104,6 +124,37 @@ class TimesFMForecaster:
     _fehler: str | None = field(default=None, init=False, repr=False)
     _api: str = field(default="", init=False, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
+
+    # -- Bezugsquelle der Gewichte ----------------------------------------
+    @staticmethod
+    def _ist_modellverzeichnis(pfad: str) -> bool:
+        """Ob der Pfad ein Verzeichnis mit brauchbaren Modellgewichten ist.
+
+        Ein leeres oder halb befuelltes Verzeichnis - etwa ein Volume-Mount,
+        der nicht griff - darf nicht als gueltige Quelle durchgehen, sonst
+        scheitert der Ladevorgang mit einer irrefuehrenden Meldung.
+        """
+        if not pfad:
+            return False
+        verzeichnis = Path(pfad)
+        if not verzeichnis.is_dir():
+            return False
+        return any((verzeichnis / datei).is_file() for datei in _GEWICHTSDATEIEN)
+
+    def quelle(self) -> str:
+        """Liefert den tatsaechlich verwendeten Checkpoint-Bezeichner.
+
+        ``MODEL_DIR`` hat Vorrang, sofern das Verzeichnis existiert und
+        Gewichte enthaelt; andernfalls gilt ``checkpoint``.
+        """
+        if self.model_dir and self._ist_modellverzeichnis(self.model_dir):
+            return self.model_dir
+        return self.checkpoint
+
+    @property
+    def laedt_lokal(self) -> bool:
+        """Ob die Gewichte aus dem lokalen Verzeichnis kommen (Offline-Betrieb)."""
+        return self.quelle() != self.checkpoint
 
     # -- Lebenszyklus ------------------------------------------------------
     def verfuegbar(self) -> bool:
@@ -122,7 +173,7 @@ class TimesFMForecaster:
         """
         if self._lade_modell() is None:
             raise TimesFMNichtVerfuegbar(
-                f"TimesFM-Checkpoint '{self.checkpoint}' konnte nicht geladen "
+                f"TimesFM-Checkpoint '{self.quelle()}' konnte nicht geladen "
                 f"werden: {self._fehler or 'unbekannter Fehler'}"
             )
 
@@ -146,9 +197,10 @@ class TimesFMForecaster:
             try:
                 self._modell = self._baue_modell()
                 _LOG.info(
-                    "TimesFM-Checkpoint '%s' geladen (API: %s).",
-                    self.checkpoint,
+                    "TimesFM-Checkpoint '%s' geladen (API: %s, Bezug: %s).",
+                    self.quelle(),
                     self._api,
+                    "lokal eingebacken" if self.laedt_lokal else "Hugging-Face-Hub",
                 )
             except Exception as exc:
                 self._modell = None
@@ -167,13 +219,13 @@ class TimesFMForecaster:
         return self._baue_modell_legacy(timesfm)
 
     def _baue_modell_2p5(self, timesfm: object) -> object:
-        """timesfm 3.x / 2.5: Hugging-Face-Checkpoint direkt laden."""
+        """timesfm 3.x / 2.5: Checkpoint laden (lokal oder vom HF-Hub)."""
         self._api = "timesfm-2.5"
         klasse = timesfm.TimesFM_2p5_200M_torch  # type: ignore[attr-defined]
 
-        # Laedt die Gewichte direkt vom HF-Hub (Repo-ID) oder aus einem
-        # lokalen Modellverzeichnis - beides deckt from_pretrained ab.
-        modell = klasse.from_pretrained(self.checkpoint, torch_compile=self.torch_compile)
+        # from_pretrained erkennt lokale Verzeichnisse selbst; mit
+        # eingebackenen Gewichten kommt der Aufruf ohne Netzzugang aus.
+        modell = klasse.from_pretrained(self.quelle(), torch_compile=self.torch_compile)
 
         modell.compile(
             timesfm.ForecastConfig(  # type: ignore[attr-defined]
@@ -204,7 +256,7 @@ class TimesFMForecaster:
                     horizon_len=self.horizon_len,
                     context_len=self.max_kontext,
                 ),
-                checkpoint=checkpoint_cls(huggingface_repo_id=self.checkpoint),
+                checkpoint=checkpoint_cls(huggingface_repo_id=self.quelle()),
             )
 
         self._api = "timesfm-1.x"
@@ -213,7 +265,7 @@ class TimesFMForecaster:
             per_core_batch_size=32,
             horizon_len=self.horizon_len,
         )
-        modell.load_from_checkpoint(repo_id=self.checkpoint)
+        modell.load_from_checkpoint(repo_id=self.quelle())
         return modell
 
     # -- Inferenz ----------------------------------------------------------
@@ -233,7 +285,7 @@ class TimesFMForecaster:
         modell = self._lade_modell()
         if modell is None:
             raise TimesFMNichtVerfuegbar(
-                f"TimesFM-Modell '{self.checkpoint}' nicht ladbar "
+                f"TimesFM-Modell '{self.quelle()}' nicht ladbar "
                 f"({self._fehler or 'unbekannter Fehler'})."
             )
 
@@ -254,7 +306,10 @@ class TimesFMForecaster:
         return DemandForecast(
             monatsabsatz_p50=p50 * faktor,
             monatsabsatz_p90=p90 * faktor,
-            modell=f"{self.name}:{self.checkpoint}",
+            # Ausgewiesen wird die tatsaechlich geladene Quelle - eine
+            # Dispositionsempfehlung muss nachvollziehbar machen, welche
+            # Gewichte sie erzeugt haben.
+            modell=f"{self.name}:{self.quelle()}",
         )
 
     def _inferiere(

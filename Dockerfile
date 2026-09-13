@@ -1,22 +1,22 @@
 # syntax=docker/dockerfile:1
 ###############################################################################
-# Stockout-Sentinel - schlankes Laufzeit-Image fuer Cloud-Deployments
+# Stockout-Sentinel - autarkes Laufzeit-Image mit eingebackenen Modellgewichten
 #
-# Zweistufiger Build: Abhaengigkeiten werden in einem Wheel-Layer installiert
-# und anschliessend in ein minimales Runtime-Image kopiert. Das Ergebnis
-# enthaelt keinen Compiler und keine Build-Artefakte.
+# Das Image ist nach dem Build vollstaendig netzunabhaengig: Das TimesFM-
+# Checkpoint von Google liegt im Dateisystem, und die Laufzeit ist per
+# HF_HUB_OFFLINE / TRANSFORMERS_OFFLINE strikt offline gestellt. Damit
+# entfaellt das Verfuegbarkeitsrisiko, das ein Download beim Containerstart
+# mit sich bringt - relevant, weil TimesFM Pflichtmodell ist und der Service
+# ohne geladenes Modell bewusst nicht hochfaehrt (FORCE_TIMESFM).
 #
-# TimesFM ist das zwingende Hauptmodell (FORCE_TIMESFM=true). Der Container
-# laedt beim Start das Google-Checkpoint von Hugging Face und startet nicht,
-# wenn das nicht gelingt - siehe Abschnitt "Modellgewichte" unten.
+# Preis dafuer: das Image waechst um die Groesse der Gewichte (~1 GB).
 ###############################################################################
 
 # --- Stufe 1: Abhaengigkeiten ------------------------------------------------
 FROM python:3.11-slim AS builder
 
-# Standardmaessig die CPU-Wheels von PyTorch verwenden. Die CUDA-Variante von
-# PyPI ist mehrere GB gross und in CPU-Deployments reiner Ballast.
-# Fuer GPU-Images: --build-arg TORCH_INDEX_URL=https://pypi.org/simple
+# PyTorch aus dem CPU-Index: die CUDA-Variante von PyPI ist mehrere GB gross
+# und in CPU-Deployments reiner Ballast.
 ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cpu
 
 ENV PIP_NO_CACHE_DIR=1 \
@@ -25,72 +25,88 @@ ENV PIP_NO_CACHE_DIR=1 \
 WORKDIR /build
 
 COPY requirements.txt .
-# In ein eigenes Praefix installieren, damit nur dieses Verzeichnis in die
-# Laufzeitstufe wandert.
+
+# PyTorch zuerst und gezielt aus dem CPU-Index. Der PyTorch-Index fuehrt nicht
+# alle transitiven Abhaengigkeiten (filelock, jinja2, sympy, ...), daher bleibt
+# PyPI als zusaetzliche Quelle eingehaengt.
+RUN python -m pip install --prefix=/install \
+        --index-url "${TORCH_INDEX_URL}" \
+        --extra-index-url https://pypi.org/simple \
+        torch
+
+# Restliche Abhaengigkeiten. torch ist bereits erfuellt und wird nicht
+# erneut - und schon gar nicht als CUDA-Variante - gezogen.
 RUN python -m pip install --prefix=/install \
         --extra-index-url "${TORCH_INDEX_URL}" \
-        -r requirements.txt
+        -r requirements.txt \
+        huggingface_hub
 
 
 # --- Stufe 2: Laufzeit -------------------------------------------------------
 FROM python:3.11-slim AS runtime
 
 LABEL org.opencontainers.image.title="Stockout-Sentinel" \
-      org.opencontainers.image.description="Dispositions- und Prognose-Service auf Basis von TimesFM" \
+      org.opencontainers.image.description="Dispositions- und Prognose-Service mit eingebackenem TimesFM-Modell" \
       org.opencontainers.image.licenses="Proprietary"
+
+ARG TIMESFM_REPO_ID=google/timesfm-2.5-200m-pytorch
+ARG MODEL_DIR=/app/models/timesfm-checkpoint
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app \
-    PORT=8000 \
-    # TimesFM ist verbindlich: kein Rueckfall auf ein anderes Verfahren.
-    FORCE_TIMESFM=true \
-    STOCKOUT_TIMESFM_CHECKPOINT=google/timesfm-2.5-200m-pytorch \
-    STOCKOUT_TIMESFM_BACKEND=cpu \
-    # Modell-Cache in einem Verzeichnis, das dem Laufzeitnutzer gehoert.
-    HF_HOME=/home/sentinel/.cache/huggingface \
-    # Ein Worker = eine Modellkopie im Speicher. Bewusst konservativ.
-    WEB_CONCURRENCY=1
+    PYTHONPATH=/app
+
+COPY --from=builder /install /usr/local
 
 # Nicht-privilegierter Nutzer: Container laufen nie als root.
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin sentinel
 
-COPY --from=builder /install /usr/local
+###############################################################################
+# Model Baking
+#
+# Laeuft bewusst VOR den Offline-Umgebungsvariablen - waeren HF_HUB_OFFLINE
+# und TRANSFORMERS_OFFLINE hier schon gesetzt, wuerde der Download scheitern.
+# Der anschliessende Abgleich laesst den Build fehlschlagen, falls die
+# Gewichtsdatei fehlt: ein Image ohne Gewichte koennte zur Laufzeit nicht
+# starten, und das soll hier auffallen, nicht erst im Deployment.
+###############################################################################
+RUN python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download( \
+    repo_id='${TIMESFM_REPO_ID}', \
+    local_dir='${MODEL_DIR}', \
+    local_dir_use_symlinks=False)" \
+ && test -f "${MODEL_DIR}/model.safetensors" \
+ && chown -R sentinel:sentinel /app/models \
+ && du -sh "${MODEL_DIR}"
+
+# --- Strikter Offline-Betrieb zur Laufzeit -----------------------------------
+ENV HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1 \
+    MODEL_DIR="/app/models/timesfm-checkpoint" \
+    WEB_CONCURRENCY=1 \
+    PORT=8000 \
+    # TimesFM ist verbindlich: kein Rueckfall auf ein anderes Verfahren.
+    FORCE_TIMESFM=true \
+    STOCKOUT_TIMESFM_CHECKPOINT=google/timesfm-2.5-200m-pytorch \
+    STOCKOUT_TIMESFM_BACKEND=cpu
 
 WORKDIR /app
 COPY --chown=sentinel:sentinel src/ ./src/
 
-RUN mkdir -p "${HF_HOME}" && chown -R sentinel:sentinel /home/sentinel
-
 USER sentinel
-
-###############################################################################
-# Modellgewichte
-#
-# Der Start laedt das Checkpoint von Hugging Face. Damit braucht der Container
-# beim ersten Start Netzzugang zu huggingface.co. Fuer abgeschottete
-# Umgebungen und schnelle Kaltstarts eine der beiden Varianten waehlen:
-#
-#   a) Gewichte in das Image backen (vergroessert es um ~1 GB):
-#      RUN python -c "import timesfm; \
-#          timesfm.TimesFM_2p5_200M_torch.from_pretrained( \
-#              'google/timesfm-2.5-200m-pytorch')"
-#
-#   b) Gewichte als Volume mounten und lokal laden:
-#      docker run -v /opt/timesfm:/models:ro \
-#                 -e STOCKOUT_TIMESFM_CHECKPOINT=/models/timesfm-2.5-200m \
-#                 stockout-sentinel
-###############################################################################
 
 EXPOSE 8000
 
-# Readiness-Probe gegen den eigenen Health-Endpunkt. Die Startphase ist
-# grosszuegig bemessen: das Laden des Checkpoints dauert beim Kaltstart
-# deutlich laenger als ein reiner Prozessstart.
-HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=3 \
+# Readiness-Probe gegen den eigenen Health-Endpunkt. 'modell_geladen'
+# unterscheidet "Prozess lebt" von "Pflichtmodell einsatzbereit". Da die
+# Gewichte lokal liegen, ist die Startphase deutlich kuerzer als bei einem
+# Download beim Containerstart.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD python -c "import os,urllib.request,json,sys; \
 r=urllib.request.urlopen(f\"http://127.0.0.1:{os.getenv('PORT','8000')}/health\", timeout=8); \
 sys.exit(0 if r.status == 200 and json.load(r).get('modell_geladen') else 1)"
 
 # Cloud-Runtimes (Cloud Run, App Service, Fly.io) geben den Port ueber $PORT vor.
+# WEB_CONCURRENCY bleibt bei 1: jeder Worker haelt eine eigene Modellkopie.
 CMD ["sh", "-c", "exec uvicorn src.api:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-1} --proxy-headers"]

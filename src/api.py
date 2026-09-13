@@ -22,6 +22,7 @@ from fastapi import Body, FastAPI, File, HTTPException, Query, Request, UploadFi
 from fastapi.responses import JSONResponse
 
 from src.adapters.csv_ingest import CSVIngestFehler, lese_csv
+from src.adapters.timesfm_forecaster import TimesFMForecaster
 from src.config import lade_config
 from src.domain.disposition import Status
 from src.engine import DispositionEngine, baue_engine
@@ -168,7 +169,7 @@ def _registriere_routen(anwendung: FastAPI) -> None:
         """Meldet Betriebsbereitschaft und die aktive Prognosekette."""
         engine = hole_engine(request)
         bereit = engine.modell_bereit
-        return {
+        antwort = {
             "status": "ok" if bereit else "degraded",
             "version": anwendung.version,
             "prognose_kette": [adapter.name for adapter in engine.prognose_kette],
@@ -178,6 +179,18 @@ def _registriere_routen(anwendung: FastAPI) -> None:
             "modell_geladen": bereit,
             "fallback_erlaubt": engine.config.fallback_erlaubt,
         }
+
+        # Bei eingebackenen Gewichten muss nachpruefbar sein, dass der
+        # Service wirklich lokal laedt und nicht doch am Hub haengt.
+        adapter = next(
+            (a for a in engine.prognose_kette if isinstance(a, TimesFMForecaster)),
+            None,
+        )
+        if adapter is not None:
+            antwort["timesfm_quelle"] = adapter.quelle()
+            antwort["modell_lokal_eingebacken"] = adapter.laedt_lokal
+            antwort["offline_modus"] = os.getenv("HF_HUB_OFFLINE") == "1"
+        return antwort
 
     @anwendung.post(
         "/api/v1/analyze-json",

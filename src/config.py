@@ -14,7 +14,13 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-__all__ = ["FORCE_TIMESFM", "EngineConfig", "lade_config"]
+__all__ = [
+    "FORCE_TIMESFM",
+    "MODEL_DIR_STANDARD",
+    "TIMESFM_HF_CHECKPOINT",
+    "EngineConfig",
+    "lade_config",
+]
 
 #: Vorgabe des Fachbereichs: TimesFM ist verbindlich, kein Fallback.
 #: Ueber die Umgebungsvariable ``FORCE_TIMESFM`` abschaltbar (Notbetrieb).
@@ -22,6 +28,11 @@ FORCE_TIMESFM = True
 
 #: Offizielles Hugging-Face-Checkpoint von Google fuer TimesFM 2.5.
 TIMESFM_HF_CHECKPOINT = "google/timesfm-2.5-200m-pytorch"
+
+#: Standardpfad der im Container-Image eingebackenen Modellgewichte.
+#: Existiert das Verzeichnis, laedt der Adapter daraus - und braucht
+#: keinerlei Netzzugang (HF_HUB_OFFLINE=1).
+MODEL_DIR_STANDARD = "/app/models/timesfm-checkpoint"
 
 _WAHR = {"1", "true", "yes", "y", "on", "ja", "wahr"}
 _FALSCH = {"0", "false", "no", "n", "off", "nein", "falsch"}
@@ -75,6 +86,10 @@ class EngineConfig:
             ``"timesfm"`` oder ``"statistisch"``.
         timesfm_checkpoint: Repo-ID des Hugging-Face-Checkpoints oder Pfad
             eines lokal vorgehaltenen Modellverzeichnisses.
+        model_dir: Verzeichnis der eingebackenen Modellgewichte. Liegt es
+            vor, hat es Vorrang vor ``timesfm_checkpoint`` - damit laeuft
+            ein autarkes Image ohne Netzzugang. Fehlt es, faellt die
+            Aufloesung auf das Checkpoint zurueck.
         timesfm_backend: Rechen-Backend fuer TimesFM ("cpu", "gpu").
         timesfm_min_kontext: Mindestlaenge der Historie fuer TimesFM. Im
             erzwungenen Modus ist der Standard 2 (das Schema-Minimum),
@@ -94,6 +109,7 @@ class EngineConfig:
     force_timesfm: bool = FORCE_TIMESFM
     prognose_strategie: str = "auto"
     timesfm_checkpoint: str = TIMESFM_HF_CHECKPOINT
+    model_dir: str = MODEL_DIR_STANDARD
     timesfm_backend: str = "cpu"
     timesfm_min_kontext: int = 2
     timesfm_max_kontext: int = 512
@@ -126,6 +142,7 @@ def lade_config() -> EngineConfig:
         timesfm_checkpoint=(
             os.getenv("STOCKOUT_TIMESFM_CHECKPOINT") or TIMESFM_HF_CHECKPOINT
         ),
+        model_dir=(os.getenv("MODEL_DIR") or MODEL_DIR_STANDARD).strip(),
         timesfm_backend=(os.getenv("STOCKOUT_TIMESFM_BACKEND") or "cpu").strip().lower(),
         timesfm_min_kontext=_env_int("STOCKOUT_TIMESFM_MIN_KONTEXT", 2 if force else 8),
         timesfm_max_kontext=_env_int("STOCKOUT_TIMESFM_MAX_KONTEXT", 512),

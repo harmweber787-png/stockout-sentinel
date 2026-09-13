@@ -29,3 +29,7 @@ htmlcov/
 *.xls
 .env
 .env.*
+
+# Modellgewichte (werden im Docker-Build eingebacken, ~1 GB).
+models/
+*.safetensors

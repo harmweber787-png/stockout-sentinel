@@ -349,3 +349,146 @@ class TestApiImPflichtmodus:
         detail = antwort.json()["detail"]
         assert "FORCE_TIMESFM" in detail
         assert "blockiert" in detail
+
+
+class TestLokaleModellgewichte:
+    """Autarker Betrieb: Vorrang des eingebackenen Modellverzeichnisses.
+
+    Das Container-Image backt die Gewichte nach ``MODEL_DIR``. Der Adapter
+    muss von dort laden, damit die Laufzeit ohne Netzzugang auskommt
+    (``HF_HUB_OFFLINE=1``).
+    """
+
+    @staticmethod
+    def _baue_checkpoint(verzeichnis, dateiname: str = "model.safetensors"):
+        """Legt ein Modellverzeichnis mit Gewichtsdatei an."""
+        verzeichnis.mkdir(parents=True, exist_ok=True)
+        (verzeichnis / dateiname).write_bytes(b"gewichte")
+        (verzeichnis / "config.json").write_text("{}")
+        return verzeichnis
+
+    def test_standardpfad_zeigt_auf_das_gebackene_verzeichnis(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("MODEL_DIR", raising=False)
+
+        assert lade_config().model_dir == "/app/models/timesfm-checkpoint"
+
+    def test_model_dir_wird_aus_der_umgebung_gelesen(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path
+    ) -> None:
+        monkeypatch.setenv("MODEL_DIR", str(tmp_path / "ckpt"))
+
+        assert lade_config().model_dir == str(tmp_path / "ckpt")
+
+    def test_vorhandenes_verzeichnis_hat_vorrang_vor_der_repo_id(
+        self, tmp_path
+    ) -> None:
+        lokal = self._baue_checkpoint(tmp_path / "timesfm-checkpoint")
+        adapter = TimesFMForecaster(
+            checkpoint="google/timesfm-2.5-200m-pytorch", model_dir=str(lokal)
+        )
+
+        assert adapter.quelle() == str(lokal)
+        assert adapter.laedt_lokal is True
+
+    def test_ohne_verzeichnis_gilt_die_repo_id(self, tmp_path) -> None:
+        adapter = TimesFMForecaster(
+            checkpoint="google/timesfm-2.5-200m-pytorch",
+            model_dir=str(tmp_path / "gibt-es-nicht"),
+        )
+
+        assert adapter.quelle() == "google/timesfm-2.5-200m-pytorch"
+        assert adapter.laedt_lokal is False
+
+    def test_leeres_verzeichnis_gilt_nicht_als_checkpoint(self, tmp_path) -> None:
+        """Ein nicht gegriffener Volume-Mount darf nicht als Quelle durchgehen."""
+        leer = tmp_path / "leer"
+        leer.mkdir()
+        adapter = TimesFMForecaster(
+            checkpoint="google/timesfm-2.5-200m-pytorch", model_dir=str(leer)
+        )
+
+        assert adapter.quelle() == "google/timesfm-2.5-200m-pytorch"
+        assert adapter.laedt_lokal is False
+
+    @pytest.mark.parametrize(
+        "dateiname", ["model.safetensors", "pytorch_model.bin", "model.ckpt"]
+    )
+    def test_gaengige_gewichtsformate_werden_erkannt(
+        self, tmp_path, dateiname: str
+    ) -> None:
+        lokal = self._baue_checkpoint(tmp_path / dateiname.split(".")[0], dateiname)
+        adapter = TimesFMForecaster(model_dir=str(lokal))
+
+        assert adapter.laedt_lokal is True
+
+    def test_leerer_model_dir_wird_ignoriert(self) -> None:
+        adapter = TimesFMForecaster(model_dir="")
+
+        assert adapter.quelle() == "google/timesfm-2.5-200m-pytorch"
+
+    def test_engine_reicht_model_dir_an_den_adapter_durch(self, tmp_path) -> None:
+        lokal = self._baue_checkpoint(tmp_path / "ckpt")
+        engine = baue_engine(EngineConfig(model_dir=str(lokal)))
+
+        assert engine.prognose_kette[0].quelle() == str(lokal)
+
+    def test_ergebnis_weist_die_tatsaechliche_quelle_aus(self, tmp_path) -> None:
+        """Nachvollziehbarkeit: welche Gewichte haben die Empfehlung erzeugt?"""
+        lokal = self._baue_checkpoint(tmp_path / "ckpt")
+        engine = DispositionEngine(
+            prognose_kette=(FakeTimesFMForecaster(model_dir=str(lokal)),),
+            config=EngineConfig(model_dir=str(lokal)),
+        )
+
+        ergebnis = engine.analysiere(baue_sku(mengen=[300.0] * 6, bestand=50.0))
+
+        assert ergebnis.prognose_modell == f"timesfm:{lokal}"
+        assert ergebnis.prognose_fallback is False
+
+    def test_health_weist_lokalen_bezug_aus(self, tmp_path) -> None:
+        lokal = self._baue_checkpoint(tmp_path / "ckpt")
+        app = erstelle_app(
+            DispositionEngine(
+                prognose_kette=(FakeTimesFMForecaster(model_dir=str(lokal)),),
+                config=EngineConfig(model_dir=str(lokal)),
+            )
+        )
+
+        with TestClient(app) as client:
+            daten = client.get("/health").json()
+
+        assert daten["timesfm_quelle"] == str(lokal)
+        assert daten["modell_lokal_eingebacken"] is True
+        assert daten["modell_geladen"] is True
+
+    def test_health_meldet_hub_bezug_ohne_gebackene_gewichte(self) -> None:
+        app = erstelle_app(
+            DispositionEngine(
+                prognose_kette=(FakeTimesFMForecaster(model_dir="/nicht/vorhanden"),),
+                config=EngineConfig(),
+            )
+        )
+
+        with TestClient(app) as client:
+            daten = client.get("/health").json()
+
+        assert daten["modell_lokal_eingebacken"] is False
+        assert daten["timesfm_quelle"] == "google/timesfm-2.5-200m-pytorch"
+
+    def test_fail_fast_gilt_auch_fuer_lokale_gewichte(self, tmp_path) -> None:
+        """Ein defektes lokales Checkpoint darf nicht stillschweigend
+        auf den Hub ausweichen - der Start muss scheitern."""
+        lokal = self._baue_checkpoint(tmp_path / "ckpt")
+        engine = DispositionEngine(
+            prognose_kette=(
+                FakeTimesFMForecaster(
+                    model_dir=str(lokal), scheitert="safetensors beschaedigt"
+                ),
+            ),
+            config=EngineConfig(model_dir=str(lokal)),
+        )
+
+        with pytest.raises(TimesFMNichtVerfuegbar, match="beschaedigt"):
+            engine.starte()
