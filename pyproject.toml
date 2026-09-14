@@ -5,7 +5,7 @@
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-include = ["kmu_discovery/**/*.py", "tests_kmu_discovery/**/*.py"]
+include = ["kmu_discovery/**/*.py", "tests_kmu_discovery/**/*.py", "scripts/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF", "ANN", "D", "PTH", "DTZ"]
@@ -24,6 +24,6 @@ convention = "pep257"
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["kmu_discovery", "tests_kmu_discovery"]
+files = ["kmu_discovery", "tests_kmu_discovery", "scripts"]
 plugins = []
 warn_unreachable = true

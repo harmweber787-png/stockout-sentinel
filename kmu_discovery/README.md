@@ -16,7 +16,8 @@ Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 | ERP-Negativfilter | `gates/erp.py`, `config/erp_rules.yaml` | fertig |
 | Gate-Kette | `gates/base.py` | fertig |
 | Lauf-Statistik (`RunStats`) | `output/stats.py` | fertig |
-| Quellen-Clients (Zefix, LINDAS, SHAB, …) | `sources/` | offen |
+| LINDAS-Felderhebung (Messinstrument) | `scripts/probe_lindas.py` | fertig, Lauf blockiert |
+| Quellen-Clients (Zefix, LINDAS, SHAB, …) | `sources/` | offen – wartet auf die Feldtabelle |
 | LLM-Extraktion mit Structured Outputs | `extraction/` | offen |
 | Scoring und Cluster-Report | `scoring/`, `output/` | offen |
 
@@ -168,6 +169,32 @@ Kontext und – ausser bei NOGA-Treffern – die Quell-URL. Ohne Beleg kein Sign
 Wortlisten, NOGA-Präfixe, Schwellenwerte und Veto-Begriffe stehen in
 `config/*.yaml` und sind ohne Code-Änderung anpassbar. Die Startwerte sind
 Marktkenntnis, keine Messung; sie gehören gegen echte Gespräche rekalibriert.
+
+## Modul 2: Netzzugang fehlt
+
+`sources/lindas.py` entsteht erst auf Basis einer **live erhobenen**
+Feldtabelle, nicht aus erinnerten Prädikatnamen. Das Messinstrument dafür steht
+(`scripts/probe_lindas.py`), der Lauf scheitert aber am Egress-Proxy dieser
+Umgebung:
+
+```
+$ python scripts/probe_lindas.py
+Erhebung fehlgeschlagen: Endpunkt nach 4 Versuchen nicht erreichbar:
+<urlopen error Tunnel connection failed: 403 Forbidden>
+```
+
+Blockiert sind unter anderem `lindas.admin.ch`, `www.zefix.admin.ch` und
+`jupyter.zazuko.com`. Sobald die Hosts in der Netzwerkrichtlinie freigegeben
+sind, liefert ein Aufruf die Tabelle:
+
+```bash
+python scripts/probe_lindas.py --dry-run            # Abfragen gegenlesen
+python scripts/probe_lindas.py --json-out lindas_felder.json
+```
+
+Das Skript ermittelt Graph und Zielklasse selbst (Schritte 1 und 2), nimmt sie
+also nicht an, und erhebt je Prädikat Abdeckung, Vorkommen, maximale
+Kardinalität je Subjekt, Datentyp und Beispielwert.
 
 ## Offene Verifikationsschulden
 
