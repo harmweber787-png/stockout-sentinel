@@ -181,12 +181,17 @@ def test_konservatives_profil_vertraegt_kein_reject_auf_verdacht() -> None:
         ErpSensitivity(profile="conservative", suspected_outcome=GateOutcome.REJECT)
 
 
-def test_entschiedene_grenzfaelle_stehen_in_der_ausschlussliste() -> None:
-    """71.1, 16.23, 25.11/25.12 und 88.91 sind entschieden, nicht mehr offen."""
-    by_id = {domain.id: domain for domain in load_liability_rules().domains}
-    bau = by_id["bau_handwerk"]
-    gesundheit = by_id["gesundheit"]
-    assert {"711", "1623", "2511", "2512"} <= set(bau.noga_reject_prefixes)
-    assert bau.noga_review_prefixes == ()
-    assert "8891" in gesundheit.noga_reject_prefixes
-    assert set(gesundheit.noga_review_prefixes) == {"75", "4774"}
+def test_alle_grenzfaelle_sind_entschieden() -> None:
+    """Kein NOGA-Praefix steht mehr auf REVIEW - jeder Fall ist entschieden."""
+    domains = load_liability_rules().domains
+    by_id = {domain.id: domain for domain in domains}
+    assert {"711", "1623", "2511", "2512"} <= set(by_id["bau_handwerk"].noga_reject_prefixes)
+    assert {"8891", "4774"} <= set(by_id["gesundheit"].noga_reject_prefixes)
+    assert all(domain.noga_review_prefixes == () for domain in domains)
+
+
+def test_veterinaer_steht_auf_keiner_liste() -> None:
+    """NOGA 75 ist entschieden drin: Tierdaten sind nicht besonders schuetzenswert."""
+    for domain in load_liability_rules().domains:
+        assert "75" not in domain.noga_reject_prefixes
+        assert "75" not in domain.noga_review_prefixes

@@ -16,7 +16,7 @@
 # veto_terms sind bewusst MEHRWORTIG: sie sollen Zulieferer entlarven
 # ("Software fuer Arztpraxen"), nicht echte Treffer wegdruecken.
 
-version: "2026-09-15"
+version: "2026-09-16"
 context_veto_window: 140
 
 # Fehlerasymmetrie dieses Gates: der verpasste Ausschluss ist der teure Fehler.
@@ -37,11 +37,12 @@ domains:
       Verarbeitung besonders schuetzenswerter Personendaten (Gesundheitsdaten)
       nach revDSG Art. 5 lit. c; zusaetzlich Berufshaftung.
     weak_hits_for_review: 3
-    # 88.91 (Kitas) entschieden ausgeschlossen: Daten ueber Kinder sind
-    # besonders schuetzenswert. 75 (Veterinaer) und 47.74 (medizinische
-    # Artikel) bleiben Grenzfall - keine Patientendaten natuerlicher Personen.
-    noga_reject_prefixes: ["86", "87", "88.10", "88.91", "47.73"]
-    noga_review_prefixes: ["75", "47.74"]
+    # Entschieden: 88.91 (Kitas, Daten ueber Kinder) und 47.74
+    # (Sanitaetshaeuser/Orthopaedie) ausgeschlossen - letztere wickeln
+    # Kostengutsprachen mit IV und Krankenkasse ab und arbeiten damit an
+    # Gesundheitsdaten natuerlicher Personen. 75 (Veterinaer) bleibt drin:
+    # Tierdaten sind nicht besonders schuetzenswert.
+    noga_reject_prefixes: ["86", "87", "88.10", "88.91", "47.73", "47.74"]
     veto_terms:
       - "software fuer arztpraxen"
       - "loesung fuer arztpraxen"

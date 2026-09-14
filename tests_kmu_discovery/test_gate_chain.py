@@ -107,13 +107,27 @@ def test_gate_result_reasons_sind_lesbar() -> None:
 
 def test_cli_demo_laeuft(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["--demo"]) == 0
-    assert "REJECT" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "REJECT" in out
+    assert "Lauf-Statistik" in out
+
+
+def test_cli_begrenzt_die_trefferliste(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["--demo", "--format", "json", "--top", "1"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert len(payload["stats"]["top_review_terms"]) == 1
 
 
 def test_cli_json_ausgabe_ist_gueltig(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["--demo", "--format", "json"]) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert [entry["outcome"] for entry in payload] == ["pass", "reject", "review", "reject"]
+    assert [entry["outcome"] for entry in payload["reports"]] == [
+        "pass",
+        "reject",
+        "review",
+        "reject",
+    ]
+    assert payload["stats"]["outcomes"] == {"passed": 1, "review": 1, "rejected": 2}
 
 
 def test_cli_liest_json_datei(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -124,4 +138,4 @@ def test_cli_liest_json_datei(tmp_path: Path, capsys: pytest.CaptureFixture[str]
     )
     assert main(["--input", str(path), "--format", "json"]) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload[0]["outcome"] == "reject"
+    assert payload["reports"][0]["outcome"] == "reject"

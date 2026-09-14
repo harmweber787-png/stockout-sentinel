@@ -15,6 +15,7 @@ Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 | Haftungs-K.o.-Filter | `gates/liability.py`, `config/liability_rules.yaml` | fertig |
 | ERP-Negativfilter | `gates/erp.py`, `config/erp_rules.yaml` | fertig |
 | Gate-Kette | `gates/base.py` | fertig |
+| Lauf-Statistik (`RunStats`) | `output/stats.py` | fertig |
 | Quellen-Clients (Zefix, LINDAS, SHAB, …) | `sources/` | offen |
 | LLM-Extraktion mit Structured Outputs | `extraction/` | offen |
 | Scoring und Cluster-Report | `scoring/`, `output/` | offen |
@@ -120,6 +121,43 @@ enger gefasst: `Treuhand` matcht nur als exaktes Wort, und Kontext-Vetos
 entlarven Zulieferer («Software für Arztpraxen» macht aus einem IT-Betrieb
 keine Praxis) – ohne den Fall ungeprüft durchzulassen.
 
+## Lauf-Statistik
+
+Jeder Lauf endet mit einer `RunStats`-Zusammenfassung – als Tabelle in der
+Konsole, als JSON unter dem Schlüssel `stats`. Sie ist die Grundlage, um
+`weak_hits_for_review` und die Wortlisten an echten Zahlen zu justieren statt
+am Bauchgefühl:
+
+* Verteilung der Urteile (PASS / REVIEW / REJECT) mit Anteilen,
+* `REVIEW` aufgeschlüsselt nach Grund (`liability_review:<domain>`,
+  `liability_thin_evidence`, `erp_review_needed`) – das Sammelflag
+  `liability_review_needed` fehlt bewusst, es wäre nur die Gesamtzahl,
+* die häufigsten Wortlisten-Treffer, die zu `REVIEW` geführt haben, je mit
+  Beleg.
+
+Gezählt werden **Betriebe, nicht Treffer**: ein Begriff, der auf einer Website
+zwanzigmal steht, ist ein Betrieb und kein zwanzigfaches Signal. Die Tiefe der
+Trefferliste steuert `--top` (Standard 10).
+
+```
+Lauf-Statistik
+==============================================================
+  Betriebe geprueft : 4
+  PASS              :     1  (25.0%)
+  REVIEW            :     1  (25.0%)
+  REJECT            :     2  (50.0%)
+
+REVIEW nach Grund
+--------------------------------------------------------------
+  liability_review:gesundheit      1  (100.0%)
+
+Haeufigste Wortlisten-Treffer mit REVIEW (Top 10)
+--------------------------------------------------------------
+  gesundheit/klinik                  1  Kliniken
+  gesundheit/praxisgemeinschaft      1  Praxisgemeinschaft
+  gesundheit/tarmed                  1  Tarmed
+```
+
 ## Belege
 
 Jeder Regeltreffer trägt Regel-ID, Feld, Originalschreibweise, Zitat mit
@@ -139,12 +177,17 @@ Marktkenntnis, keine Messung; sie gehören gegen echte Gespräche rekalibriert.
 | ERP-Anbieterliste | aus Marktkenntnis, nicht aus gepflegter Quelle | Referenzkundenlisten der Anbieter, Stichproben echter Stelleninserate |
 | NOGA-Präfixe der übrigen Haftungsfelder | aus NOGA 2008 abgeleitet | gegen die BFS-Systematik gegenlesen |
 
-**Erledigt:** Die vier offenen NOGA-Grenzfälle sind entschieden und stehen in
-der Ausschlussliste: 71.1 (Planer, SIA-Bezug), 16.23 sowie 25.11/25.12
-(Bauschreinerei, Metall- und Stahlbau – Werkverträge mit Mängelrüge- und
-Garantiefristen) und 88.91 (Kitas – Daten über Kinder). Als Grenzfall mit
-`REVIEW` verbleiben nur 75 (Veterinär) und 47.74 (medizinische Artikel): dort
-entstehen keine Patientendaten natürlicher Personen.
+**Erledigt – keine offenen NOGA-Grenzfälle mehr.** Ausgeschlossen: 71.1
+(Planer, SIA-Bezug), 16.23 sowie 25.11/25.12 (Bauschreinerei, Metall- und
+Stahlbau – Werkverträge mit Mängelrüge- und Garantiefristen), 88.91 (Kitas –
+Daten über Kinder) und 47.74 (Sanitätshäuser, Orthopädie – Kostengutsprachen
+mit IV und Krankenkasse, also Gesundheitsdaten natürlicher Personen). Im
+Kandidatenpool bleibt 75 (Veterinär): Tierdaten sind nicht besonders
+schützenswert.
+
+Damit steht derzeit kein NOGA-Präfix mehr auf `REVIEW`. Die Mechanik dafür
+bleibt im Modell und getestet – sie wird gebraucht, sobald bei der Kalibrierung
+ein noch nicht entschiedenes Feld auftaucht.
 
 ## Bekannte Verzerrungen
 

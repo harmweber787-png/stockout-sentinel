@@ -16,6 +16,7 @@ from kmu_discovery.gates.base import GateReport, run_gates
 from kmu_discovery.gates.erp import ErpGate, ErpGateResult, ErpStatus
 from kmu_discovery.gates.liability import LiabilityGate
 from kmu_discovery.models import CompanyProfile, GateOutcome, GateResult
+from kmu_discovery.output import RunStats
 
 __all__ = [
     "CompanyProfile",
@@ -26,6 +27,7 @@ __all__ = [
     "GateReport",
     "GateResult",
     "LiabilityGate",
+    "RunStats",
     "default_gates",
     "run_gates",
 ]

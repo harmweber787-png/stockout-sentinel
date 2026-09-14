@@ -31,6 +31,7 @@ from kmu_discovery.models import (
     Standort,
     TextDocument,
 )
+from kmu_discovery.output import DEFAULT_TOP_N, RunStats
 
 _ADAPTER = TypeAdapter(list[CompanyProfile])
 
@@ -145,14 +146,24 @@ def main(argv: Sequence[str] | None = None) -> int:
     source.add_argument("--input", type=Path, help="JSON-Datei mit Betrieben ('-' fuer stdin).")
     source.add_argument("--demo", action="store_true", help="Eingebautes Beispiel verwenden.")
     parser.add_argument("--format", choices=("text", "json"), default="text")
+    parser.add_argument(
+        "--top",
+        type=int,
+        default=DEFAULT_TOP_N,
+        help=f"Anzahl der haeufigsten REVIEW-Treffer in der Statistik (Standard {DEFAULT_TOP_N}).",
+    )
     args = parser.parse_args(argv)
 
     companies = _demo_companies() if args.demo else _load(args.input)
     gates = default_gates()
     reports = [run_gates(company, gates) for company in companies]
+    stats = RunStats.from_reports(reports, top_n=args.top)
 
     if args.format == "json":
-        payload = [report.model_dump(mode="json") for report in reports]
+        payload = {
+            "stats": stats.model_dump(mode="json"),
+            "reports": [report.model_dump(mode="json") for report in reports],
+        }
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         return 0
 
@@ -175,6 +186,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             for note in result.notes:
                 print(f"      ! {note}")
         print()
+
+    print(stats.as_table())
     return 0
 
 

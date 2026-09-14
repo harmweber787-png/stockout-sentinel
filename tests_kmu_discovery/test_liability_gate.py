@@ -11,7 +11,11 @@ from __future__ import annotations
 
 import pytest
 
-from kmu_discovery.config.rules import LiabilitySensitivity, load_liability_rules
+from kmu_discovery.config.rules import (
+    LiabilityDomain,
+    LiabilitySensitivity,
+    load_liability_rules,
+)
 from kmu_discovery.gates.liability import (
     LIABILITY_REVIEW_FLAG,
     LIABILITY_THIN_EVIDENCE_FLAG,
@@ -228,14 +232,31 @@ def test_konservatives_profil_laesst_zulieferer_ganz_durch(page: PageLoader) -> 
 # -- Grenzfaelle ---------------------------------------------------------- #
 
 
-@pytest.mark.parametrize("noga", ["75.00", "47.74"])
-def test_verbliebener_grenzfall_wird_markiert_nicht_verworfen(
-    gate: LiabilityGate, noga: str
-) -> None:
-    """Veterinaer und medizinische Artikel: kein K.o.-Feld, aber auch kein PASS."""
-    result = gate.evaluate(make_company(noga_codes=[noga]))
+def test_veterinaer_bleibt_im_kandidatenpool() -> None:
+    """NOGA 75: Tierdaten sind keine besonders schuetzenswerten Personendaten."""
+    result = LiabilityGate().evaluate(make_company(noga_codes=["75.00"]))
+    assert result.outcome is GateOutcome.PASS
+    assert result.flags == ()
+
+
+def test_noga_review_mechanik_bleibt_nutzbar(gate: LiabilityGate) -> None:
+    """Im ausgelieferten Katalog steht derzeit kein Grenzfall-Praefix mehr.
+
+    Die Mechanik bleibt trotzdem geprueft - sie wird gebraucht, sobald bei der
+    Kalibrierung ein neues Feld auftaucht, das noch nicht entschieden ist.
+    """
+    domain = LiabilityDomain(
+        id="testfeld",
+        label="Testfeld",
+        rationale="nur fuer den Test",
+        noga_reject_prefixes=("99",),
+        noga_review_prefixes=("98",),
+    )
+    rules = load_liability_rules().model_copy(update={"domains": (domain,)})
+    result = LiabilityGate(rules=rules).evaluate(make_company(noga_codes=["98.10"]))
     assert result.outcome is GateOutcome.REVIEW
     assert LIABILITY_REVIEW_FLAG in result.flags
+    assert "liability_review:testfeld" in result.flags
 
 
 @pytest.mark.parametrize(
@@ -246,6 +267,7 @@ def test_verbliebener_grenzfall_wird_markiert_nicht_verworfen(
         ("25.11", "bau_handwerk"),  # Metallbau
         ("25.12", "bau_handwerk"),  # Stahl- und Metallbau
         ("88.91", "gesundheit"),    # Kitas, Daten ueber Kinder
+        ("47.74", "gesundheit"),    # Sanitaetshaeuser, Kostengutsprachen IV/KK
     ],
 )
 def test_entschiedene_grenzfaelle_schliessen_aus(
