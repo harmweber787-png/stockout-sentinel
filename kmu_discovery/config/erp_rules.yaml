@@ -1,0 +1,236 @@
+# ERP-Negativfilter
+#
+# Wer bereits ein Standard-ERP betreibt, hat den Medienbruch-Schmerz gelöst und
+# ist kein Zielbetrieb. Umgekehrt sind "Excel", "MS-Office-Kenntnisse" und
+# Freemail-Adressen positive Schmerzsignale (ERP-Abwesenheit).
+#
+# Wirkungslogik (in gates/erp.py implementiert):
+#   Treffer in Stelleninserat / Portal-Domain / Zweck -> REJECT
+#   decisive-Treffer auf der Website                  -> REJECT
+#   sonstiger Website-Treffer                         -> REVIEW
+#
+# Mehrdeutige Anbieternamen (Sage, Klara, Banana, Topal) duerfen laut
+# Modellvalidierung NUR qualifizierte Muster fuehren - "ich sage Ihnen" und
+# "Klara Meier" duerfen keinen Betrieb ausschliessen.
+#
+# VERIFIKATIONSSCHULD: Die Anbieterliste stammt aus Marktkenntnis, nicht aus
+# einer gepflegten Quelle. Vor Produktivnutzung gegen die Referenzkundenlisten
+# der Anbieter und gegen Stichproben aus echten Stelleninseraten gegenpruefen.
+
+version: "2026-09-14"
+pain_signals_for_absence: 2
+
+vendors:
+  - id: abacus
+    label: "Abacus"
+    domains: ["abacus.ch", "abaweb.ch", "abasalary.ch", "abacity.ch"]
+    patterns:
+      - {id: abacus_qualifiziert, regex: "abacus[- ](kenntnisse|erfahrung|anwender|software|business|erp|finanzsoftware)", decisive: true}
+      - {id: abacus_name, term: Abacus}
+
+  - id: abaninja
+    label: "AbaNinja (Abacus)"
+    domains: ["abaninja.ch"]
+    patterns:
+      - {id: abaninja_name, term: AbaNinja, decisive: true}
+
+  - id: bexio
+    label: "Bexio"
+    domains: ["bexio.com", "bexio.ch"]
+    patterns:
+      - {id: bexio_name, term: bexio, decisive: true}
+
+  - id: klara
+    label: "KLARA"
+    ambiguous: true
+    domains: ["klara.ch"]
+    patterns:
+      - {id: klara_qualifiziert, regex: "klara[- ](business|software|kenntnisse|buchhaltung|lohn|cloud)", decisive: true}
+      - {id: klara_produkt, term: KLARA Business, decisive: true}
+
+  - id: swiss21
+    label: "Swiss21"
+    domains: ["swiss21.org"]
+    patterns:
+      - {id: swiss21_name, regex: "swiss21", decisive: true}
+
+  - id: sage
+    label: "Sage"
+    ambiguous: true
+    domains: ["sage.com"]
+    patterns:
+      - {id: sage_produkt, regex: "sage[- ]?(50|200|x3|start|business cloud)", decisive: true}
+      - {id: sage_kontext, regex: "sage[- ](kenntnisse|erfahrung|anwender|buchhaltung|software)", decisive: true}
+
+  - id: sap
+    label: "SAP / SAP Business One"
+    domains: ["sap.com"]
+    patterns:
+      - {id: sap_qualifiziert, regex: "sap[- ](business one|b1|kenntnisse|erfahrung|anwender|erp|modul)", decisive: true}
+      - {id: sap_name, term: SAP, mode: word}
+
+  - id: dynamics
+    label: "Microsoft Dynamics / Business Central"
+    patterns:
+      - {id: dynamics_produkt, regex: "(microsoft |ms )?dynamics ?(365|nav|ax)?", decisive: true}
+      - {id: navision, term: Navision, decisive: true}
+      - {id: business_central, term: Business Central, decisive: true}
+
+  - id: odoo
+    label: "Odoo"
+    domains: ["odoo.com"]
+    patterns:
+      - {id: odoo_name, term: Odoo, decisive: true}
+
+  - id: infoniqa
+    label: "Infoniqa"
+    domains: ["infoniqa.com"]
+    patterns:
+      - {id: infoniqa_name, term: Infoniqa, decisive: true}
+
+  - id: sorba
+    label: "SORBA (Bau-ERP)"
+    domains: ["sorba.ch"]
+    patterns:
+      - {id: sorba_qualifiziert, regex: "sorba[- ](software|erp|kenntnisse|bau)", decisive: true}
+      - {id: sorba_name, term: SORBA, mode: word}
+
+  - id: baubit
+    label: "BauBit"
+    patterns:
+      - {id: baubit_name, term: BauBit, decisive: true}
+
+  - id: bauplus
+    label: "BauPlus"
+    patterns:
+      - {id: bauplus_name, term: BauPlus, decisive: true}
+
+  - id: tocco
+    label: "tocco"
+    domains: ["tocco.ch"]
+    patterns:
+      - {id: tocco_name, term: tocco, mode: word, decisive: true}
+
+  - id: vertec
+    label: "Vertec"
+    domains: ["vertec.com", "vertec.ch"]
+    patterns:
+      - {id: vertec_name, term: Vertec, decisive: true}
+
+  - id: proffix
+    label: "PROFFIX"
+    domains: ["proffix.ch", "proffix.net"]
+    patterns:
+      - {id: proffix_name, term: PROFFIX, decisive: true}
+
+  - id: opacc
+    label: "Opacc"
+    domains: ["opacc.ch"]
+    patterns:
+      - {id: opacc_name, term: Opacc, decisive: true}
+
+  - id: myfactory
+    label: "myfactory"
+    domains: ["myfactory.ch", "myfactoryschweiz.ch"]
+    patterns:
+      - {id: myfactory_name, term: myfactory, decisive: true}
+
+  - id: blue_office
+    label: "Blue Office"
+    domains: ["blueoffice.ch"]
+    patterns:
+      - {id: blue_office_name, term: Blue Office, decisive: true}
+
+  - id: comatic
+    label: "Comatic"
+    domains: ["comatic.ch"]
+    patterns:
+      - {id: comatic_name, term: Comatic, decisive: true}
+
+  - id: winbiz
+    label: "WinBIZ"
+    domains: ["winbiz.ch"]
+    patterns:
+      - {id: winbiz_name, term: WinBIZ, decisive: true}
+
+  - id: selectline
+    label: "SelectLine"
+    domains: ["selectline.ch"]
+    patterns:
+      - {id: selectline_name, term: SelectLine, decisive: true}
+
+  - id: topal
+    label: "Topal Solutions"
+    ambiguous: true
+    domains: ["topal.ch"]
+    patterns:
+      - {id: topal_produkt, regex: "topal[- ](solutions|finanzbuchhaltung|software|kenntnisse)", decisive: true}
+
+  - id: banana
+    label: "Banana Buchhaltung"
+    ambiguous: true
+    domains: ["banana.ch"]
+    patterns:
+      - {id: banana_produkt, regex: "banana[- ](buchhaltung|accounting|plus|software)", decisive: true}
+
+  - id: accounto
+    label: "Accounto"
+    domains: ["accounto.ch"]
+    patterns:
+      - {id: accounto_name, term: Accounto, decisive: true}
+
+  - id: run_my_accounts
+    label: "Run my Accounts"
+    domains: ["runmyaccounts.ch", "runmyaccounts.com"]
+    patterns:
+      - {id: rma_name, term: Run my Accounts, decisive: true}
+
+  - id: lexware
+    label: "Lexware"
+    patterns:
+      - {id: lexware_name, term: Lexware, decisive: true}
+
+  - id: datev
+    label: "DATEV"
+    patterns:
+      - {id: datev_name, term: DATEV, mode: word, decisive: true}
+
+# Positive Schmerzsignale: Hinweise darauf, dass KEIN ERP im Einsatz ist.
+# Diese erzeugen nie einen Ausschluss, sondern speisen den Teilscore
+# "ERP-Abwesenheit".
+pain_signals:
+  - {id: excel, term: Excel}
+  - {id: word_kenntnisse, regex: "word[- ](kenntnisse|erfahrung)"}
+  - {id: ms_office, regex: "(ms|microsoft)[- ]office"}
+  - {id: office_kenntnisse, regex: "office[- ](kenntnisse|anwenderkenntnisse)"}
+  - {id: outlook, term: Outlook}
+  - {id: access_datenbank, regex: "access[- ]datenbank"}
+  - {id: openoffice, regex: "(open|libre)[- ]?office"}
+  - {id: handschriftlich, term: handschriftlich}
+  - {id: papierbasiert, term: papierbasiert}
+  - {id: excel_liste, regex: "excel[- ](liste|tabelle|datei)"}
+
+# Freemail- und Provider-Domains als Firmenadresse: starkes Indiz fuer fehlende
+# IT-Struktur. Keine Aussage ueber die Person dahinter (revDSG).
+free_mail_domains:
+  - bluewin.ch
+  - gmx.ch
+  - gmx.net
+  - gmx.de
+  - hotmail.com
+  - hotmail.ch
+  - gmail.com
+  - yahoo.com
+  - yahoo.de
+  - hispeed.ch
+  - sunrise.ch
+  - green.ch
+  - tiscali.ch
+  - vtxmail.ch
+  - bluemail.ch
+  - outlook.com
+  - live.com
+  - quickline.ch
+  - citycable.ch
+  - netplus.ch
+  - swissonline.ch

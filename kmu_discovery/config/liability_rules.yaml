@@ -1,0 +1,235 @@
+# Haftungs-K.o.-Katalog der Problem-Discovery-Engine
+#
+# Betriebe, deren KERNTAETIGKEIT in eines dieser Felder faellt, werden vor dem
+# Scoring ausgeschlossen. Der Filter ist deterministisch: NOGA-Praefixe und
+# Wortlisten, kein LLM-Ermessen. Grenzfaelle erhalten REVIEW statt eines
+# stillen Durchlassens.
+#
+# Wirkungslogik (in gates/liability.py implementiert, nicht hier konfigurierbar):
+#   NOGA in noga_reject_prefixes          -> REJECT
+#   NOGA in noga_review_prefixes          -> REVIEW
+#   decisive-Begriff in Zweck/Name        -> REJECT
+#   decisive-Begriff auf Website/Inserat  -> REJECT
+#   >= weak_hits_for_review schwache Begriffe im Zweck  -> REJECT
+#   >= weak_hits_for_review schwache Begriffe sonstwo   -> REVIEW
+#
+# veto_terms sind bewusst MEHRWORTIG: sie sollen Zulieferer entlarven
+# ("Software fuer Arztpraxen"), nicht echte Treffer wegdruecken.
+
+version: "2026-09-14"
+context_veto_window: 140
+
+domains:
+  # ------------------------------------------------------------------ #
+  - id: gesundheit
+    label: "Gesundheit und Heilberufe"
+    rationale: >-
+      Verarbeitung besonders schuetzenswerter Personendaten (Gesundheitsdaten)
+      nach revDSG Art. 5 lit. c; zusaetzlich Berufshaftung.
+    weak_hits_for_review: 3
+    noga_reject_prefixes: ["86", "87", "88.10", "47.73"]
+    noga_review_prefixes: ["75", "47.74", "88.91"]
+    veto_terms:
+      - "software fuer arztpraxen"
+      - "loesung fuer arztpraxen"
+      - "software fuer praxen"
+      - "unsere referenzkunden"
+      - "wir entwickeln software"
+      - "hersteller von medizintechnik"
+    terms:
+      - {id: arztpraxis, term: Arztpraxis, decisive: true}
+      - {id: hausarzt, term: Hausarzt, decisive: true}
+      - {id: kinderarzt, term: Kinderarzt, decisive: true}
+      - {id: zahnarzt, term: Zahnarzt, decisive: true}
+      - {id: zahnaerztin, term: Zahnärztin, decisive: true}
+      - {id: dentalhygiene, term: Dentalhygiene, decisive: true}
+      - {id: physiotherapie, term: Physiotherapie, decisive: true}
+      - {id: ergotherapie, term: Ergotherapie, decisive: true}
+      - {id: psychotherapie, term: Psychotherapie, decisive: true}
+      - {id: logopaedie, term: Logopädie, decisive: true}
+      - {id: podologie, term: Podologie, decisive: true}
+      - {id: osteopathie, term: Osteopathie, decisive: true}
+      - {id: chiropraktik, term: Chiropraktik, decisive: true}
+      - {id: naturheilpraxis, term: Naturheilpraxis, decisive: true}
+      - {id: heilpraktiker, term: Heilpraktiker, decisive: true}
+      - {id: akupunktur, term: Akupunktur, decisive: true}
+      - {id: homoeopathie, term: Homöopathie, decisive: true}
+      - {id: hebamme, term: Hebamme, decisive: true}
+      - {id: spitex, term: Spitex, decisive: true}
+      - {id: pflegeheim, term: Pflegeheim, decisive: true}
+      - {id: altersheim, term: Altersheim, decisive: true}
+      - {id: apotheke, term: Apotheke, decisive: true}
+      - {id: spital, term: Spital, decisive: true, note: "Auch 'Spitalbedarf' - Grenzfall bewusst streng."}
+      - {id: klinik, term: Klinik, decisive: true}
+      - {id: praxisgemeinschaft, term: Praxisgemeinschaft, decisive: true}
+      - {id: tarmed, term: Tarmed, decisive: true}
+      - {id: patient, term: Patient}
+      - {id: sprechstunde, term: Sprechstunde}
+      - {id: krankenkasse, term: Krankenkasse}
+      - {id: anamnese, term: Anamnese}
+      - {id: krankengeschichte, term: Krankengeschichte}
+      - {id: behandlung, term: Behandlung}
+      - {id: diagnose, term: Diagnose}
+      - {id: rezeptur, term: Rezeptur}
+
+  # ------------------------------------------------------------------ #
+  - id: recht
+    label: "Recht, Notariat, Inkasso"
+    rationale: >-
+      Fristen mit Rechtsverlust, Rechtsberatungshaftung, Berufsgeheimnis
+      (StGB Art. 321).
+    weak_hits_for_review: 2
+    noga_reject_prefixes: ["69.10", "82.91"]
+    veto_terms:
+      - "software fuer anwaltskanzleien"
+      - "unsere referenzkunden"
+      - "unser rechtsanwalt beraet uns"
+    terms:
+      - {id: rechtsanwalt, term: Rechtsanwalt, decisive: true}
+      - {id: anwaltskanzlei, term: Anwaltskanzlei, decisive: true}
+      - {id: advokatur, term: Advokatur, decisive: true}
+      - {id: fuersprecher, term: Fürsprecher, decisive: true}
+      - {id: notariat, term: Notariat, decisive: true}
+      - {id: notar, term: Notar, mode: word, decisive: true}
+      - {id: rechtsberatung, term: Rechtsberatung, decisive: true}
+      - {id: rechtsdienst, term: Rechtsdienst, decisive: true}
+      - {id: willensvollstrecker, term: Willensvollstrecker, decisive: true}
+      - {id: inkasso, term: Inkasso, decisive: true}
+      - {id: betreibungsbegehren, term: Betreibungsbegehren, decisive: true}
+      - {id: prozessfuehrung, term: Prozessführung, decisive: true}
+      - {id: mandant, term: Mandant}
+      - {id: klageschrift, term: Klageschrift}
+      - {id: gerichtsverfahren, term: Gerichtsverfahren}
+      - {id: rechtsmittelfrist, term: Rechtsmittelfrist}
+      - {id: vollmacht, term: Vollmacht}
+
+  # ------------------------------------------------------------------ #
+  - id: bau_handwerk
+    label: "Bau, Gartenbau, Handwerk mit Werkvertraegen"
+    rationale: >-
+      Werkvertragsrecht (OR Art. 363 ff., SIA 118): Maengelruege- und
+      Garantiefristen mit direkter Vermoegensfolge.
+    weak_hits_for_review: 2
+    noga_reject_prefixes: ["41", "42", "43", "81.30"]
+    noga_review_prefixes: ["71.1", "16.23", "25.11", "25.12"]
+    veto_terms:
+      - "software fuer bauunternehmen"
+      - "loesung fuer das baugewerbe"
+      - "unsere referenzkunden"
+    terms:
+      - {id: sia_118, regex: "sia[- ]?118", decisive: true}
+      - {id: werkvertrag, term: Werkvertrag, decisive: true}
+      - {id: maengelruege, term: Mängelrüge, decisive: true}
+      - {id: baumeister, term: Baumeister, decisive: true}
+      - {id: generalunternehmer, term: Generalunternehmer, decisive: true}
+      - {id: totalunternehmer, term: Totalunternehmer, decisive: true}
+      - {id: bauleitung, term: Bauleitung, decisive: true}
+      - {id: sanitaerinstallation, term: Sanitärinstallation, decisive: true}
+      - {id: elektroinstallation, term: Elektroinstallation, decisive: true}
+      - {id: heizungsbau, term: Heizungsbau, decisive: true}
+      - {id: lueftungsbau, term: Lüftungsbau, decisive: true}
+      - {id: fensterbau, term: Fensterbau, decisive: true}
+      - {id: metallbau, term: Metallbau, decisive: true}
+      - {id: geruestbau, term: Gerüstbau, decisive: true}
+      - {id: gartenbau, term: Gartenbau, decisive: true}
+      - {id: landschaftsbau, term: Landschaftsbau, decisive: true}
+      - {id: gipsergeschaeft, term: Gipsergeschäft, decisive: true}
+      - {id: maurerarbeiten, term: Maurerarbeiten, decisive: true}
+      - {id: dachdecker, term: Dachdecker, decisive: true}
+      - {id: spenglerei, term: Spenglerei, decisive: true}
+      - {id: schreinerei, term: Schreinerei, decisive: true}
+      - {id: zimmerei, term: Zimmerei, decisive: true}
+      - {id: malergeschaeft, term: Malergeschäft, decisive: true}
+      - {id: bodenleger, term: Bodenleger, decisive: true}
+      - {id: plattenleger, term: Plattenleger, decisive: true}
+      - {id: baustelle, term: Baustelle}
+      - {id: bauherrschaft, term: Bauherrschaft}
+      - {id: abnahmeprotokoll, term: Abnahmeprotokoll}
+      - {id: garantiefrist, term: Garantiefrist}
+      - {id: submission, term: Submission}
+      - {id: renovation, term: Renovation}
+
+  # ------------------------------------------------------------------ #
+  - id: personalverleih
+    label: "Personalverleih und Arbeitsvermittlung"
+    rationale: >-
+      AVG-Bewilligungspflicht, GAV-Lohnberechnung, Bussen bei Fehlabrechnung.
+    weak_hits_for_review: 2
+    noga_reject_prefixes: ["78"]
+    veto_terms:
+      - "software fuer personaldienstleister"
+      - "unsere referenzkunden"
+    terms:
+      - {id: personalverleih, term: Personalverleih, decisive: true}
+      - {id: personalvermittlung, term: Personalvermittlung, decisive: true}
+      - {id: stellenvermittlung, term: Stellenvermittlung, decisive: true}
+      - {id: arbeitsvermittlung, term: Arbeitsvermittlung, decisive: true}
+      - {id: temporaerbuero, term: Temporärbüro, decisive: true}
+      - {id: temporaerarbeit, term: Temporärarbeit, decisive: true}
+      - {id: verleihbetrieb, term: Verleihbetrieb, decisive: true}
+      - {id: avg_bewilligung, regex: "avg[- ]bewilligung", decisive: true}
+      - {id: einsatzbetrieb, term: Einsatzbetrieb}
+      - {id: einsatzvertrag, term: Einsatzvertrag}
+      - {id: gav_unterstellung, regex: "gav[- ]unterstellung"}
+      - {id: seco_bewilligung, regex: "seco[- ]bewilligung"}
+
+  # ------------------------------------------------------------------ #
+  - id: treuhand
+    label: "Treuhand, Buchhaltung, Steuer- und Lohnverarbeitung"
+    rationale: >-
+      Steuer- und Lohnberechnung im Kundenauftrag: direkte Vermoegenshaftung
+      bei Fehlern, Revisionsaufsicht.
+    weak_hits_for_review: 2
+    noga_reject_prefixes: ["69.20"]
+    veto_terms:
+      - "software fuer treuhaender"
+      - "loesung fuer treuhandbueros"
+      - "unsere referenzkunden"
+      - "unser treuhaender erledigt"
+    terms:
+      # 'Treuhand' nur als exaktes Wort: der Stamm wuerde sonst auch den
+      # eigenen 'Treuhaender' eines Zielbetriebs treffen und faelschlich
+      # ausschliessen.
+      - {id: treuhand, term: Treuhand, mode: word, decisive: true}
+      - {id: treuhandbuero, term: Treuhandbüro, decisive: true}
+      - {id: treuhandgesellschaft, term: Treuhandgesellschaft, decisive: true}
+      - {id: buchhaltungsbuero, term: Buchhaltungsbüro, decisive: true}
+      - {id: steuerberatung, term: Steuerberatung, decisive: true}
+      - {id: wirtschaftspruefung, term: Wirtschaftsprüfung, decisive: true}
+      - {id: revisionsstelle, term: Revisionsstelle, decisive: true}
+      - {id: lohnbuchhaltung, term: Lohnbuchhaltung, decisive: true}
+      - {id: abschlussberatung, term: Abschlussberatung, decisive: true}
+      - {id: treuhaender, term: Treuhänder}
+      - {id: steuererklaerung, term: Steuererklärung}
+      - {id: mehrwertsteuerabrechnung, term: Mehrwertsteuerabrechnung}
+      - {id: jahresabschluss, term: Jahresabschluss}
+      - {id: mandatsbuchhaltung, term: Mandatsbuchhaltung}
+
+  # ------------------------------------------------------------------ #
+  - id: finanz
+    label: "Finanzdienstleistung, Vermoegensverwaltung, Versicherungsvermittlung"
+    rationale: >-
+      Beratungshaftung nach FIDLEG/FINIG, FINMA-Aufsicht, VAG-Registerpflicht
+      fuer Versicherungsvermittler.
+    weak_hits_for_review: 2
+    noga_reject_prefixes: ["64", "65", "66"]
+    veto_terms:
+      - "software fuer vermoegensverwalter"
+      - "unsere referenzkunden"
+      - "unsere versicherung deckt"
+    terms:
+      - {id: vermoegensverwaltung, term: Vermögensverwaltung, decisive: true}
+      - {id: anlageberatung, term: Anlageberatung, decisive: true}
+      - {id: finanzberatung, term: Finanzberatung, decisive: true}
+      - {id: hypothekarberatung, term: Hypothekarberatung, decisive: true}
+      - {id: vorsorgeberatung, term: Vorsorgeberatung, decisive: true}
+      - {id: versicherungsbroker, term: Versicherungsbroker, decisive: true}
+      - {id: versicherungsvermittlung, term: Versicherungsvermittlung, decisive: true}
+      - {id: versicherungsagentur, term: Versicherungsagentur, decisive: true}
+      - {id: finma, term: FINMA, mode: word, decisive: true}
+      - {id: fidleg, term: FIDLEG, mode: word, decisive: true}
+      - {id: anlagestrategie, term: Anlagestrategie}
+      - {id: saeule_3a, regex: "saeule 3a"}
+      - {id: versicherungsnehmer, term: Versicherungsnehmer}
+      - {id: praemienvergleich, term: Prämienvergleich}
+      - {id: portfolioverwaltung, term: Portfolioverwaltung}
