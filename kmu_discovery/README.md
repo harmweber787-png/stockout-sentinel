@@ -79,16 +79,46 @@ durchgelassen.
 
 **ERP-Negativfilter:** Nennung in einem Stelleninserat, auf einer Portal-Domain
 oder im Zweckartikel ist ein harter Nachweis (`REJECT`); eine unqualifizierte
-Website-Nennung nur ein Verdacht (`REVIEW`). Positive Schmerzsignale (Excel,
-MS-Office als einzige Anforderung, Freemail als Firmenadresse) schliessen nie
-aus, sondern speisen das Rohsignal `absence_signal` für den späteren Teilscore.
+Website-Nennung nur ein Verdacht – der Betrieb bleibt drin und trägt
+`erp_review_needed`. Positive Schmerzsignale (Excel, MS-Office als einzige
+Anforderung, Freemail als Firmenadresse) schliessen nie aus, sondern speisen
+das Rohsignal `absence_signal` für den späteren Teilscore.
 
-Zwei Fehlerklassen werden bewusst getrennt behandelt: ein verpasster Ausschluss
-fällt später auf, ein **falsches** `REJECT` nie. Deshalb haben mehrdeutige
-Anbieternamen (Sage, Klara, Banana, Topal) nur qualifizierte Muster – das
-Modell lehnt einen blossen Namen bei `ambiguous: true` ab –, deshalb matcht
-`Treuhand` nur als exaktes Wort, und deshalb gibt es Kontext-Vetos für
-Zulieferer («Software für Arztpraxen» macht aus einem IT-Betrieb keine Praxis).
+## Fehlerasymmetrie: pro Gate verschieden
+
+Die beiden Gates haben **gegenläufige** teure Fehler. Das steht als
+`sensitivity`-Block in der jeweiligen YAML und ist als Modell validiert – ein
+Profil, das seinen eigenen Stellschrauben widerspricht, wird beim Laden
+abgelehnt.
+
+| | Haftungs-Gate | ERP-Gate |
+|---|---|---|
+| Profil | `aggressive` | `conservative` |
+| Teurer Fehler | verpasster Ausschluss – ein K.o.-Betrieb rutscht durch und man baut ein Produkt, das man nicht bauen darf | Fehlalarm – ein fälschlich ausgeschlossener Betrieb fällt nie auf, weil er nie mehr auftaucht |
+| Im Zweifel | `REJECT`, mindestens `liability_review_needed` | `PASS` mit `erp_review_needed` |
+| Stellschrauben | `below_threshold_outcome`, `thin_evidence_outcome`, `vetoed_hit_outcome` | `suspected_outcome` |
+
+Konkret aggressiv beim Haftungs-Gate:
+
+* Schwache Begriffe **unter** der Schwelle sind `REVIEW`, nicht folgenlos.
+* Weder NOGA-Code noch Text vorhanden heisst `REVIEW` plus
+  `liability_thin_evidence` – dann wurde nichts geprüft, nicht nichts gefunden.
+  Eine geprüfte Website ohne NOGA gilt nicht als dünn, sonst stünde alles auf
+  `REVIEW`.
+* Ein entscheidender Treffer, der nur am Kontext-Veto scheiterte, geht in die
+  Prüfschlange statt durch.
+
+Preis dieser Einstellung: die `REVIEW`-Schlange wird lang, weil die schwachen
+Wortlisten Alltagswörter enthalten («Behandlung», «Garantiefrist»). Das ist
+gewollt – die Schraube dagegen ist `weak_hits_for_review` je Domain, nicht das
+Profil.
+
+Konkret konservativ beim ERP-Gate: mehrdeutige Anbieternamen (Sage, Klara,
+Banana, Topal) dürfen nur qualifizierte Muster führen – das Modell lehnt einen
+blossen Namen bei `ambiguous: true` ab. Beim Haftungs-Gate ist dieselbe Logik
+enger gefasst: `Treuhand` matcht nur als exaktes Wort, und Kontext-Vetos
+entlarven Zulieferer («Software für Arztpraxen» macht aus einem IT-Betrieb
+keine Praxis) – ohne den Fall ungeprüft durchzulassen.
 
 ## Belege
 
@@ -107,7 +137,14 @@ Marktkenntnis, keine Messung; sie gehören gegen echte Gespräche rekalibriert.
 |---|---|---|
 | UID-Prüfziffer (`uid_check_digit`) | Gewichte aus der BFS-Doku, nicht gegen einen amtlichen Testvektor geprüft | Stichprobe echter UIDs gegen den UID-Webservice des BFS; bis dahin nur beratend, das Modell prüft ausschliesslich das Format |
 | ERP-Anbieterliste | aus Marktkenntnis, nicht aus gepflegter Quelle | Referenzkundenlisten der Anbieter, Stichproben echter Stelleninserate |
-| NOGA-Präfixe der Haftungsfelder | aus NOGA 2008 abgeleitet | gegen die BFS-Systematik gegenlesen, besonders 71.1, 16.23, 25.11/25.12, 88.91 |
+| NOGA-Präfixe der übrigen Haftungsfelder | aus NOGA 2008 abgeleitet | gegen die BFS-Systematik gegenlesen |
+
+**Erledigt:** Die vier offenen NOGA-Grenzfälle sind entschieden und stehen in
+der Ausschlussliste: 71.1 (Planer, SIA-Bezug), 16.23 sowie 25.11/25.12
+(Bauschreinerei, Metall- und Stahlbau – Werkverträge mit Mängelrüge- und
+Garantiefristen) und 88.91 (Kitas – Daten über Kinder). Als Grenzfall mit
+`REVIEW` verbleiben nur 75 (Veterinär) und 47.74 (medizinische Artikel): dort
+entstehen keine Patientendaten natürlicher Personen.
 
 ## Bekannte Verzerrungen
 
@@ -120,6 +157,9 @@ Marktkenntnis, keine Messung; sie gehören gegen echte Gespräche rekalibriert.
   gestern, nicht den von heute.
 
 ## Entwicklung
+
+Die vier anonymisierten Beispielseiten liegen in `kmu_discovery/examples/` und
+werden sowohl vom Demo-Aufruf als auch von den Tests benutzt.
 
 ```bash
 python -m pytest tests_kmu_discovery -q

@@ -10,20 +10,22 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from kmu_discovery.gates.text import MatchMode, fold
-from kmu_discovery.models import normalize_noga
+from kmu_discovery.models import GateOutcome, normalize_noga
 
 __all__ = [
     "CONFIG_DIR",
     "ErpRules",
+    "ErpSensitivity",
     "ErpVendor",
     "LiabilityDomain",
     "LiabilityRules",
+    "LiabilitySensitivity",
     "TermPattern",
     "load_erp_rules",
     "load_liability_rules",
@@ -77,6 +79,84 @@ class TermPattern(BaseModel):
         return fold(self.term).folded
 
 
+class LiabilitySensitivity(BaseModel):
+    """Fehlerasymmetrie des Haftungs-Gates.
+
+    Beim Haftungsfilter ist der **verpasste Ausschluss** der teure Fehler: ein
+    durchgelassener Betrieb aus einem K.o.-Feld erzeugt ein Produkt, das man
+    nicht bauen darf. Deshalb ist das Profil ``aggressive``: Zweifel fuehren zu
+    REJECT oder mindestens ``liability_review_needed``, nie zu einem stillen
+    PASS.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    profile: Literal["aggressive", "conservative"] = "aggressive"
+    below_threshold_outcome: GateOutcome = Field(
+        default=GateOutcome.REVIEW,
+        description=(
+            "Urteil, wenn schwache Begriffe die Schwelle nicht erreichen. "
+            "Aggressiv: REVIEW statt folgenlos."
+        ),
+    )
+    thin_evidence_outcome: GateOutcome = Field(
+        default=GateOutcome.REVIEW,
+        description=(
+            "Urteil, wenn weder NOGA-Code noch Text vorliegt - dann wurde nichts "
+            "geprueft, nicht 'nichts gefunden'."
+        ),
+    )
+    vetoed_hit_outcome: GateOutcome = Field(
+        default=GateOutcome.REVIEW,
+        description=(
+            "Urteil, wenn ein entscheidender Treffer nur durch ein Kontext-Veto "
+            "wegfiel. Aggressiv: der Fall geht in die Pruefschlange, nicht durch."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _profile_matches_knobs(self) -> Self:
+        if self.profile == "aggressive" and GateOutcome.PASS in {
+            self.below_threshold_outcome,
+            self.thin_evidence_outcome,
+            self.vetoed_hit_outcome,
+        }:
+            raise ValueError(
+                "Profil 'aggressive' vertraegt kein PASS als Zweifelsurteil - "
+                "entweder Profil auf 'conservative' setzen oder das Urteil anheben"
+            )
+        return self
+
+
+class ErpSensitivity(BaseModel):
+    """Fehlerasymmetrie des ERP-Gates.
+
+    Beim ERP-Filter ist der **Fehlalarm** der teure Fehler: ein faelschlich
+    ausgeschlossener Betrieb faellt nie auf, weil er nie mehr auftaucht. Deshalb
+    ist das Profil ``conservative``: ein Verdacht ohne harten Nachweis laesst den
+    Betrieb drin und setzt nur ``erp_review_needed``.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    profile: Literal["aggressive", "conservative"] = "conservative"
+    suspected_outcome: GateOutcome = Field(
+        default=GateOutcome.PASS,
+        description=(
+            "Urteil bei unqualifizierter Anbieternennung (Verdacht ohne harten "
+            "Nachweis). Konservativ: PASS mit Flag."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _profile_matches_knobs(self) -> Self:
+        if self.profile == "conservative" and self.suspected_outcome is GateOutcome.REJECT:
+            raise ValueError(
+                "Profil 'conservative' vertraegt kein REJECT auf blossen Verdacht"
+            )
+        return self
+
+
 class LiabilityDomain(BaseModel):
     """Ein Haftungsfeld aus dem K.o.-Katalog."""
 
@@ -123,6 +203,7 @@ class LiabilityRules(BaseModel):
 
     version: str
     context_veto_window: int = Field(default=120, ge=0, le=2000)
+    sensitivity: LiabilitySensitivity = LiabilitySensitivity()
     domains: tuple[LiabilityDomain, ...]
 
     @model_validator(mode="after")
@@ -173,6 +254,7 @@ class ErpRules(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     version: str
+    sensitivity: ErpSensitivity = ErpSensitivity()
     vendors: tuple[ErpVendor, ...]
     pain_signals: tuple[TermPattern, ...] = ()
     free_mail_domains: tuple[str, ...] = ()

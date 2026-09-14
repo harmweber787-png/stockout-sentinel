@@ -1,14 +1,18 @@
 """Tests des ERP-Negativfilters.
 
-Der teuerste Fehler hier ist ein falsches REJECT durch einen mehrdeutigen
-Anbieternamen: "ich sage Ihnen", "Klara Meier", "wir liefern Bananen". Diese
-Faelle haben eigene Tests.
+Fehlerasymmetrie dieses Gates: der **Fehlalarm** ist der teure Fehler - ein
+faelschlich ausgeschlossener Betrieb faellt nie auf. Das Gate faehrt deshalb
+konservativ: nur ein harter Nachweis schliesst aus, ein blosser Verdacht setzt
+nur ein Flag. Der klassische Fehlalarm kommt von mehrdeutigen Anbieternamen
+("ich sage Ihnen", "Klara Meier", "wir liefern Bananen") - dafuer gibt es
+eigene Tests.
 """
 
 from __future__ import annotations
 
 import pytest
 
+from kmu_discovery.config.rules import ErpSensitivity, load_erp_rules
 from kmu_discovery.gates.erp import ERP_REVIEW_FLAG, ErpGate, ErpStatus
 from kmu_discovery.models import DocumentKind, GateOutcome, MatchField, Severity
 from tests_kmu_discovery.conftest import PageLoader, make_company, make_document
@@ -74,12 +78,30 @@ def test_anbieter_domain_als_firmenmail_schliesst_aus(gate: ErpGate) -> None:
     assert any(m.field is MatchField.DOMAIN for m in result.matches)
 
 
-def test_unqualifizierte_nennung_ergibt_nur_verdacht(gate: ErpGate) -> None:
+def test_unqualifizierte_nennung_schliesst_konservativ_nicht_aus(gate: ErpGate) -> None:
+    """Verdacht ohne harten Nachweis: Betrieb bleibt drin, aber sichtbar markiert."""
     company = make_company(documents=[make_document("Unsere Abacus-Installation läuft seit 2015.")])
     result = gate.evaluate(company)
-    assert result.outcome is GateOutcome.REVIEW
+    assert result.outcome is GateOutcome.PASS
     assert result.status is ErpStatus.SUSPECTED
     assert ERP_REVIEW_FLAG in result.flags
+    assert "erp_suspected:abacus" in result.flags
+
+
+def test_aggressives_profil_wuerde_den_verdacht_ausschliessen() -> None:
+    """Gegenprobe: die Sensitivitaet ist wirksam, nicht dekorativ."""
+    rules = load_erp_rules()
+    streng = rules.model_copy(
+        update={
+            "sensitivity": ErpSensitivity(
+                profile="aggressive", suspected_outcome=GateOutcome.REJECT
+            )
+        }
+    )
+    company = make_company(documents=[make_document("Unsere Abacus-Installation läuft seit 2015.")])
+    result = ErpGate(rules=streng).evaluate(company)
+    assert result.outcome is GateOutcome.REJECT
+    assert result.status is ErpStatus.SUSPECTED
 
 
 # -- Fehlalarmschutz bei mehrdeutigen Namen ------------------------------- #

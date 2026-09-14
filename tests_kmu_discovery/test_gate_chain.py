@@ -113,7 +113,7 @@ def test_cli_demo_laeuft(capsys: pytest.CaptureFixture[str]) -> None:
 def test_cli_json_ausgabe_ist_gueltig(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["--demo", "--format", "json"]) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert [entry["outcome"] for entry in payload] == ["reject", "pass", "reject"]
+    assert [entry["outcome"] for entry in payload] == ["pass", "reject", "review", "reject"]
 
 
 def test_cli_liest_json_datei(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

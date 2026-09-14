@@ -5,6 +5,12 @@ keine Zielbetriebe. Umgekehrt liefert das Gate positive Schmerzsignale
 (Excel/Office als einzige Software, Freemail als Firmenadresse) als Rohwert
 fuer den Teilscore "ERP-Abwesenheit" - die Gewichtung passiert in ``scoring/``,
 nicht hier.
+
+Fehlerasymmetrie: hier ist der **Fehlalarm** der teure Fehler. Ein faelschlich
+ausgeschlossener Betrieb faellt nie auf, weil er nie mehr auftaucht. Das Gate
+faehrt deshalb konservativ - nur ein harter Nachweis schliesst aus, ein
+blosser Verdacht laesst den Betrieb drin und setzt ``erp_review_needed``. Die
+Stellschraube steht in ``config/erp_rules.yaml`` unter ``sensitivity``.
 """
 
 from __future__ import annotations
@@ -105,7 +111,7 @@ class ErpGate:
             outcome = GateOutcome.REJECT
         elif soft_vendors:
             status = ErpStatus.SUSPECTED
-            outcome = GateOutcome.REVIEW
+            outcome = self._rules.sensitivity.suspected_outcome
         elif len(pain_ids) >= self._rules.pain_signals_for_absence or free_mail:
             status = ErpStatus.ABSENCE_INDICATED
             outcome = GateOutcome.PASS
@@ -121,7 +127,9 @@ class ErpGate:
             )
 
         flags: list[str] = [f"erp_detected:{vendor}" for vendor in hard_vendors]
-        if outcome is GateOutcome.REVIEW:
+        if soft_vendors:
+            # Verdacht wird immer sichtbar gemacht, auch wenn er den Betrieb
+            # konservativ nicht ausschliesst.
             flags.append(ERP_REVIEW_FLAG)
             flags.extend(f"erp_suspected:{vendor}" for vendor in soft_vendors)
         if free_mail:

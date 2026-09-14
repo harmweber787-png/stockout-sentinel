@@ -9,7 +9,9 @@ import pytest
 
 from kmu_discovery.models import CompanyProfile, DocumentKind, TextDocument
 
-FIXTURE_DIR = Path(__file__).parent / "fixtures"
+#: Die Beispielseiten liegen beim Paket, nicht bei den Tests: der Demo-Aufruf
+#: (``python -m kmu_discovery --demo``) arbeitet auf denselben Seiten.
+FIXTURE_DIR = Path(__file__).resolve().parent.parent / "kmu_discovery" / "examples"
 RETRIEVED_AT = datetime(2026, 9, 14, 8, 0, tzinfo=UTC)
 
 
@@ -19,7 +21,7 @@ def page() -> PageLoader:
 
 
 class PageLoader:
-    """Laedt anonymisierte Beispielseiten aus ``fixtures/``."""
+    """Laedt anonymisierte Beispielseiten aus ``kmu_discovery/examples/``."""
 
     def __init__(self, directory: Path) -> None:
         """Merkt sich das Fixture-Verzeichnis."""

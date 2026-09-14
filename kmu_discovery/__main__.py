@@ -22,52 +22,109 @@ from pathlib import Path
 from pydantic import TypeAdapter
 
 from kmu_discovery import default_gates, run_gates
-from kmu_discovery.models import CompanyProfile, DocumentKind, TextDocument
+from kmu_discovery.models import (
+    CompanyProfile,
+    DocumentKind,
+    ErpGateResult,
+    Groessenklasse,
+    Rechtsform,
+    Standort,
+    TextDocument,
+)
 
 _ADAPTER = TypeAdapter(list[CompanyProfile])
 
 
+EXAMPLE_DIR = Path(__file__).resolve().parent / "examples"
+
+
+def _example_page(name: str) -> str:
+    """Liest eine anonymisierte Beispielseite aus ``examples/``."""
+    return (EXAMPLE_DIR / f"{name}.txt").read_text(encoding="utf-8")
+
+
 def _demo_companies() -> list[CompanyProfile]:
+    """Vier Betriebe auf den vier Beispielseiten - je ein Urteilspfad."""
     now = datetime(2026, 9, 14, 8, 0, tzinfo=UTC)
     return [
+        # PASS: Zielbetrieb - Papierprozess, Office-Inserat, Freemail, kein ERP.
         CompanyProfile(
             uid="CHE-100.000.001",
-            name="Zahnarztpraxis Seefeld AG",
-            noga_codes=["86.23"],
-            zweck="Betrieb einer Zahnarztpraxis.",
-        ),
-        CompanyProfile(
-            uid="CHE-100.000.002",
-            name="Muster Logistik AG",
-            noga_codes=["52.29"],
-            zweck="Nationale und internationale Transporte.",
-            website="https://muster-logistik.ch",
+            name="Fahrschule Musterthal GmbH",
+            rechtsform=Rechtsform.GMBH,
+            noga_codes=["85.53"],
+            groessenklasse=Groessenklasse.MIKRO,
+            standort=Standort(kanton="BE", plz="3011", ort="Musterthal"),
+            zweck="Betrieb einer Fahrschule sowie Durchführung von Verkehrskundeunterricht.",
+            website="https://fahrschule-musterthal.ch",
             emails=["info@bluewin.ch"],
             documents=[
                 TextDocument(
+                    kind=DocumentKind.WEBSITE_PAGE,
+                    url="https://fahrschule-musterthal.ch/anmeldung",
+                    text=_example_page("website_fahrschule"),
+                    retrieved_at=now,
+                ),
+                TextDocument(
                     kind=DocumentKind.JOB_POSTING,
-                    url="https://muster-logistik.ch/jobs/sachbearbeiterin",
-                    text=(
-                        "Sachbearbeiterin Administration 60%. Erfassung von Auftraegen, "
-                        "Ablage, Korrespondenz. Gute MS-Office-Kenntnisse, insbesondere "
-                        "Excel, werden vorausgesetzt."
-                    ),
+                    url="https://fahrschule-musterthal.ch/jobs/sachbearbeiterin",
+                    text=_example_page("job_ad_sachbearbeiterin"),
                     retrieved_at=now,
                 ),
             ],
         ),
+        # REJECT: Haftungsfeld Gesundheit - NOGA und Website decken sich.
+        CompanyProfile(
+            uid="CHE-100.000.002",
+            name="Praxis am Dorfplatz AG",
+            rechtsform=Rechtsform.AG,
+            noga_codes=["86.21"],
+            standort=Standort(kanton="ZH", plz="8001", ort="Musterdorf"),
+            zweck="Führung einer Arztpraxis für Allgemeine Innere Medizin.",
+            website="https://praxis-am-dorfplatz.ch",
+            documents=[
+                TextDocument(
+                    kind=DocumentKind.WEBSITE_PAGE,
+                    url="https://praxis-am-dorfplatz.ch/",
+                    text=_example_page("website_arztpraxis"),
+                    retrieved_at=now,
+                ),
+            ],
+        ),
+        # REVIEW: Zulieferer - Kontext-Veto verhindert den Ausschluss, aber der
+        # Fall geht in die Pruefschlange statt stillschweigend durch.
         CompanyProfile(
             uid="CHE-100.000.003",
+            name="Musterwerk Informatik GmbH",
+            rechtsform=Rechtsform.GMBH,
+            noga_codes=["62.01"],
+            standort=Standort(kanton="SG", plz="9000", ort="Musterstadt"),
+            zweck="Entwicklung und Vertrieb von Branchensoftware.",
+            website="https://musterwerk-informatik.ch",
+            documents=[
+                TextDocument(
+                    kind=DocumentKind.WEBSITE_PAGE,
+                    url="https://musterwerk-informatik.ch/loesungen",
+                    text=_example_page("website_software_anbieter"),
+                    retrieved_at=now,
+                ),
+            ],
+        ),
+        # REJECT: ERP im Einsatz - Stelleninserat ist ein harter Nachweis.
+        CompanyProfile(
+            uid="CHE-100.000.004",
             name="Beispiel Handels GmbH",
+            rechtsform=Rechtsform.GMBH,
             noga_codes=["46.90"],
+            standort=Standort(kanton="AG", plz="5000", ort="Musterau"),
             website="https://beispiel-handel.ch",
             documents=[
                 TextDocument(
                     kind=DocumentKind.JOB_POSTING,
                     url="https://beispiel-handel.ch/karriere",
                     text=(
-                        "Fuer unsere Buchhaltung setzen wir Abacus ein; "
-                        "Abacus-Kenntnisse von Vorteil."
+                        "Sachbearbeiter/in Finanzen 80%. Für unsere Buchhaltung "
+                        "setzen wir Abacus ein; Abacus-Kenntnisse sind Voraussetzung."
                     ),
                     retrieved_at=now,
                 ),
@@ -105,10 +162,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         if report.flags:
             print(f"  Flags:  {', '.join(report.flags)}")
         for result in report.results:
-            for reason in result.reasons()[:5]:
-                print(f"    - {result.gate}: {reason}")
+            print(f"  [{result.gate}] {result.outcome}", end="")
+            if isinstance(result, ErpGateResult):
+                print(
+                    f" | Status {result.status} | Abwesenheitssignal {result.absence_signal}"
+                    f" | Schmerzsignale {', '.join(result.pain_signals) or '-'}",
+                    end="",
+                )
+            print()
+            for reason in result.reasons()[:4]:
+                print(f"      - {reason}")
             for note in result.notes:
-                print(f"    ! {result.gate}: {note}")
+                print(f"      ! {note}")
         print()
     return 0
 

@@ -17,8 +17,16 @@
 # einer gepflegten Quelle. Vor Produktivnutzung gegen die Referenzkundenlisten
 # der Anbieter und gegen Stichproben aus echten Stelleninseraten gegenpruefen.
 
-version: "2026-09-14"
+version: "2026-09-15"
 pain_signals_for_absence: 2
+
+# Fehlerasymmetrie dieses Gates: der Fehlalarm ist der teure Fehler. Ein
+# faelschlich ausgeschlossener Betrieb faellt nie auf, weil er nie mehr
+# auftaucht. Deshalb bleibt ein Verdacht ohne harten Nachweis drin und traegt
+# nur erp_review_needed.
+sensitivity:
+  profile: conservative
+  suspected_outcome: pass   # unqualifizierte Anbieternennung auf der Website
 
 vendors:
   - id: abacus

@@ -16,8 +16,18 @@
 # veto_terms sind bewusst MEHRWORTIG: sie sollen Zulieferer entlarven
 # ("Software fuer Arztpraxen"), nicht echte Treffer wegdruecken.
 
-version: "2026-09-14"
+version: "2026-09-15"
 context_veto_window: 140
+
+# Fehlerasymmetrie dieses Gates: der verpasste Ausschluss ist der teure Fehler.
+# Ein durchgelassener Betrieb aus einem K.o.-Feld erzeugt ein Produkt, das man
+# nicht bauen darf - das faellt erst auf, wenn es zu spaet ist. Deshalb fuehrt
+# hier jeder Zweifel zu REJECT oder mindestens liability_review_needed.
+sensitivity:
+  profile: aggressive
+  below_threshold_outcome: review   # schwache Begriffe unter der Schwelle
+  thin_evidence_outcome: review     # kein NOGA-Code und kein Text: nichts geprueft
+  vetoed_hit_outcome: review        # harter Treffer nur per Kontext-Veto entfallen
 
 domains:
   # ------------------------------------------------------------------ #
@@ -27,8 +37,11 @@ domains:
       Verarbeitung besonders schuetzenswerter Personendaten (Gesundheitsdaten)
       nach revDSG Art. 5 lit. c; zusaetzlich Berufshaftung.
     weak_hits_for_review: 3
-    noga_reject_prefixes: ["86", "87", "88.10", "47.73"]
-    noga_review_prefixes: ["75", "47.74", "88.91"]
+    # 88.91 (Kitas) entschieden ausgeschlossen: Daten ueber Kinder sind
+    # besonders schuetzenswert. 75 (Veterinaer) und 47.74 (medizinische
+    # Artikel) bleiben Grenzfall - keine Patientendaten natuerlicher Personen.
+    noga_reject_prefixes: ["86", "87", "88.10", "88.91", "47.73"]
+    noga_review_prefixes: ["75", "47.74"]
     veto_terms:
       - "software fuer arztpraxen"
       - "loesung fuer arztpraxen"
@@ -110,8 +123,10 @@ domains:
       Werkvertragsrecht (OR Art. 363 ff., SIA 118): Maengelruege- und
       Garantiefristen mit direkter Vermoegensfolge.
     weak_hits_for_review: 2
-    noga_reject_prefixes: ["41", "42", "43", "81.30"]
-    noga_review_prefixes: ["71.1", "16.23", "25.11", "25.12"]
+    # 71.1 (Planer, SIA-Bezug) sowie 16.23 und 25.11/25.12 (Bauschreinerei,
+    # Metall- und Stahlbau) entschieden ausgeschlossen: alle arbeiten auf
+    # Werkvertrag mit Maengelruege- und Garantiefristen.
+    noga_reject_prefixes: ["41", "42", "43", "81.30", "71.1", "16.23", "25.11", "25.12"]
     veto_terms:
       - "software fuer bauunternehmen"
       - "loesung fuer das baugewerbe"

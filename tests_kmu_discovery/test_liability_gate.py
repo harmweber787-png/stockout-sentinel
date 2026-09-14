@@ -1,17 +1,22 @@
 """Tests des Haftungs-K.o.-Gates.
 
-Zwei Klassen von Tests, beide gleich wichtig:
-  * Trefferpflicht  - jedes K.o.-Feld muss erkannt werden.
-  * Fehlalarmschutz - harmlose Betriebe duerfen nicht ausgeschlossen werden.
-    Ein falsches REJECT kostet einen Kandidaten unbemerkt; das ist der teurere
-    Fehler, weil er nie auffaellt.
+Fehlerasymmetrie dieses Gates: der **verpasste Ausschluss** ist der teure
+Fehler. Das Gate faehrt deshalb aggressiv - Zweifel fuehren zu REJECT oder
+mindestens ``liability_review_needed``. Die Gegenrichtung bleibt trotzdem
+getestet: ein klar harmloser Betrieb muss sauber durchkommen, sonst ist die
+Aggressivitaet nur Rauschen.
 """
 
 from __future__ import annotations
 
 import pytest
 
-from kmu_discovery.gates.liability import LIABILITY_REVIEW_FLAG, LiabilityGate
+from kmu_discovery.config.rules import LiabilitySensitivity, load_liability_rules
+from kmu_discovery.gates.liability import (
+    LIABILITY_REVIEW_FLAG,
+    LIABILITY_THIN_EVIDENCE_FLAG,
+    LiabilityGate,
+)
 from kmu_discovery.models import DocumentKind, GateOutcome, MatchField, Severity
 from tests_kmu_discovery.conftest import PageLoader, make_company, make_document
 
@@ -143,40 +148,129 @@ def test_eigener_treuhaender_schliesst_nicht_hart_aus(gate: LiabilityGate) -> No
     assert LIABILITY_REVIEW_FLAG in result.flags
 
 
-def test_einzelnes_schwaches_wort_bleibt_folgenlos(gate: LiabilityGate) -> None:
-    company = make_company(documents=[make_document("In der Praxis hat sich das bewährt.")])
+def test_schwache_begriffe_unter_der_schwelle_gehen_in_die_pruefschlange(
+    gate: LiabilityGate,
+) -> None:
+    """Aggressives Profil: unterschwellige Treffer sind REVIEW, nicht folgenlos."""
+    company = make_company(
+        noga_codes=["46.90"],
+        documents=[make_document("Die Behandlung Ihrer Anfrage erfolgt umgehend.")],
+    )
     result = gate.evaluate(company)
+    assert result.outcome is GateOutcome.REVIEW
+    assert LIABILITY_REVIEW_FLAG in result.flags
+    assert {m.severity for m in result.matches if m.field is not MatchField.NOGA} == {
+        Severity.REVIEW
+    }
+
+
+def test_konservatives_profil_laesst_unterschwelliges_durch() -> None:
+    """Gegenprobe: mit umgestellter Sensitivitaet bleibt derselbe Fall folgenlos."""
+    rules = load_liability_rules()
+    zahm = rules.model_copy(
+        update={
+            "sensitivity": LiabilitySensitivity(
+                profile="conservative",
+                below_threshold_outcome=GateOutcome.PASS,
+                thin_evidence_outcome=GateOutcome.PASS,
+                vetoed_hit_outcome=GateOutcome.PASS,
+            )
+        }
+    )
+    company = make_company(
+        noga_codes=["46.90"],
+        documents=[make_document("Die Behandlung Ihrer Anfrage erfolgt umgehend.")],
+    )
+    result = LiabilityGate(rules=zahm).evaluate(company)
     assert result.outcome is GateOutcome.PASS
     assert all(m.severity is Severity.INFO for m in result.matches)
 
 
-def test_zulieferer_wird_durch_kontext_veto_gerettet(
+def test_zulieferer_wird_nicht_ausgeschlossen_aber_vorgelegt(
     gate: LiabilityGate, page: PageLoader
 ) -> None:
-    """'Software fuer Arztpraxen' macht aus einem IT-Betrieb keine Arztpraxis."""
+    """'Software fuer Arztpraxen' macht aus einem IT-Betrieb keine Arztpraxis.
+
+    Das Kontext-Veto verhindert den Ausschluss - aber aggressiv heisst: der Fall
+    geht in die Pruefschlange, nicht stillschweigend durch.
+    """
     company = make_company(
         name="Musterwerk Informatik GmbH",
         noga_codes=["62.01"],
         documents=[make_document(page("website_software_anbieter"))],
     )
-    assert gate.evaluate(company).outcome is GateOutcome.PASS
+    result = gate.evaluate(company)
+    assert result.outcome is GateOutcome.REVIEW
+    assert LIABILITY_REVIEW_FLAG in result.flags
+
+
+def test_konservatives_profil_laesst_zulieferer_ganz_durch(page: PageLoader) -> None:
+    """Gegenprobe zur Vetobehandlung."""
+    rules = load_liability_rules()
+    zahm = rules.model_copy(
+        update={
+            "sensitivity": LiabilitySensitivity(
+                profile="conservative",
+                below_threshold_outcome=GateOutcome.PASS,
+                thin_evidence_outcome=GateOutcome.PASS,
+                vetoed_hit_outcome=GateOutcome.PASS,
+            )
+        }
+    )
+    company = make_company(
+        name="Musterwerk Informatik GmbH",
+        noga_codes=["62.01"],
+        documents=[make_document(page("website_software_anbieter"))],
+    )
+    assert LiabilityGate(rules=zahm).evaluate(company).outcome is GateOutcome.PASS
 
 
 # -- Grenzfaelle ---------------------------------------------------------- #
 
 
-@pytest.mark.parametrize("noga", ["75.00", "71.11", "16.23", "88.91"])
-def test_grenzfall_noga_wird_markiert_nicht_verworfen(gate: LiabilityGate, noga: str) -> None:
+@pytest.mark.parametrize("noga", ["75.00", "47.74"])
+def test_verbliebener_grenzfall_wird_markiert_nicht_verworfen(
+    gate: LiabilityGate, noga: str
+) -> None:
+    """Veterinaer und medizinische Artikel: kein K.o.-Feld, aber auch kein PASS."""
     result = gate.evaluate(make_company(noga_codes=[noga]))
     assert result.outcome is GateOutcome.REVIEW
     assert LIABILITY_REVIEW_FLAG in result.flags
 
 
-def test_duenne_pruefgrundlage_wird_vermerkt(gate: LiabilityGate) -> None:
+@pytest.mark.parametrize(
+    ("noga", "domain"),
+    [
+        ("71.11", "bau_handwerk"),  # Planer, SIA-Bezug
+        ("16.23", "bau_handwerk"),  # Bauschreinerei, Werkvertrag
+        ("25.11", "bau_handwerk"),  # Metallbau
+        ("25.12", "bau_handwerk"),  # Stahl- und Metallbau
+        ("88.91", "gesundheit"),    # Kitas, Daten ueber Kinder
+    ],
+)
+def test_entschiedene_grenzfaelle_schliessen_aus(
+    gate: LiabilityGate, noga: str, domain: str
+) -> None:
+    result = gate.evaluate(make_company(noga_codes=[noga]))
+    assert result.outcome is GateOutcome.REJECT
+    assert f"liability_reject:{domain}" in result.flags
+
+
+def test_duenne_pruefgrundlage_ist_kein_sauberes_pass(gate: LiabilityGate) -> None:
+    """Kein NOGA und kein Text heisst: nichts geprueft, nicht nichts gefunden."""
     result = gate.evaluate(make_company())
-    assert result.outcome is GateOutcome.PASS
-    assert any("NOGA" in note for note in result.notes)
+    assert result.outcome is GateOutcome.REVIEW
+    assert LIABILITY_THIN_EVIDENCE_FLAG in result.flags
     assert any("duenne Pruefgrundlage" in note for note in result.notes)
+
+
+def test_website_ohne_noga_gilt_nicht_als_duenn(gate: LiabilityGate) -> None:
+    """Ein geprueftes PASS bleibt ein PASS - sonst stuende alles auf REVIEW."""
+    result = gate.evaluate(
+        make_company(documents=[make_document("Familienbetrieb für Verpackungen seit 1954.")])
+    )
+    assert result.outcome is GateOutcome.PASS
+    assert LIABILITY_THIN_EVIDENCE_FLAG not in result.flags
 
 
 def test_treffer_werden_entdoppelt(gate: LiabilityGate) -> None:

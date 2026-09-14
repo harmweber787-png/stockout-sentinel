@@ -7,14 +7,17 @@ from pydantic import ValidationError
 
 from kmu_discovery.config.rules import (
     ErpRules,
+    ErpSensitivity,
     ErpVendor,
     LiabilityDomain,
     LiabilityRules,
+    LiabilitySensitivity,
     TermPattern,
     load_erp_rules,
     load_liability_rules,
 )
 from kmu_discovery.gates.text import MatchMode
+from kmu_discovery.models import GateOutcome
 
 #: Die sechs Haftungsfelder aus dem K.o.-Katalog des Projekts.
 ERWARTETE_DOMAINS = {
@@ -145,3 +148,45 @@ def test_kataloge_werden_zwischengespeichert() -> None:
 
 def test_standardmodus_ist_wortstamm() -> None:
     assert TermPattern(id="x", term="a").mode is MatchMode.STEM
+
+
+# -- Fehlerasymmetrie ----------------------------------------------------- #
+
+
+def test_haftungskatalog_faehrt_aggressiv() -> None:
+    """Verpasster Ausschluss ist hier der teure Fehler."""
+    sensitivity = load_liability_rules().sensitivity
+    assert sensitivity.profile == "aggressive"
+    assert GateOutcome.PASS not in {
+        sensitivity.below_threshold_outcome,
+        sensitivity.thin_evidence_outcome,
+        sensitivity.vetoed_hit_outcome,
+    }
+
+
+def test_erp_katalog_faehrt_konservativ() -> None:
+    """Fehlalarm ist hier der teure Fehler."""
+    sensitivity = load_erp_rules().sensitivity
+    assert sensitivity.profile == "conservative"
+    assert sensitivity.suspected_outcome is GateOutcome.PASS
+
+
+def test_aggressives_profil_vertraegt_kein_pass_als_zweifelsurteil() -> None:
+    with pytest.raises(ValidationError, match="kein PASS"):
+        LiabilitySensitivity(profile="aggressive", thin_evidence_outcome=GateOutcome.PASS)
+
+
+def test_konservatives_profil_vertraegt_kein_reject_auf_verdacht() -> None:
+    with pytest.raises(ValidationError, match="kein REJECT"):
+        ErpSensitivity(profile="conservative", suspected_outcome=GateOutcome.REJECT)
+
+
+def test_entschiedene_grenzfaelle_stehen_in_der_ausschlussliste() -> None:
+    """71.1, 16.23, 25.11/25.12 und 88.91 sind entschieden, nicht mehr offen."""
+    by_id = {domain.id: domain for domain in load_liability_rules().domains}
+    bau = by_id["bau_handwerk"]
+    gesundheit = by_id["gesundheit"]
+    assert {"711", "1623", "2511", "2512"} <= set(bau.noga_reject_prefixes)
+    assert bau.noga_review_prefixes == ()
+    assert "8891" in gesundheit.noga_reject_prefixes
+    assert set(gesundheit.noga_review_prefixes) == {"75", "4774"}

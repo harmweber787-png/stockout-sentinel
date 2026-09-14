@@ -239,6 +239,19 @@ class Severity(StrEnum):
     REVIEW = "review"
     INFO = "info"
 
+    @classmethod
+    def from_outcome(cls, outcome: GateOutcome) -> Severity:
+        """Gegenrichtung zu :meth:`to_outcome` - fuer konfigurierte Urteile.
+
+        >>> Severity.from_outcome(GateOutcome.PASS)
+        <Severity.INFO: 'info'>
+        """
+        return {
+            GateOutcome.REJECT: cls.REJECT,
+            GateOutcome.REVIEW: cls.REVIEW,
+            GateOutcome.PASS: cls.INFO,
+        }[outcome]
+
     def to_outcome(self) -> GateOutcome:
         """Uebersetzt die Trefferwirkung in ein Gate-Urteil."""
         return {

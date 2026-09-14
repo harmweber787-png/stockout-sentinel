@@ -54,11 +54,18 @@ class ScanField:
 
 @dataclass(frozen=True, slots=True)
 class PatternHit:
-    """Ein Regeltreffer vor der Bewertung."""
+    """Ein Regeltreffer vor der Bewertung.
+
+    ``vetoed`` markiert einen Treffer, den ein Kontext-Veto entkraeftet hat. Er
+    wird nicht verworfen, sondern weitergereicht: ob ein entkraefteter Treffer
+    folgenlos bleibt oder in die Pruefschlange geht, entscheidet die
+    Sensitivitaet des jeweiligen Gates, nicht die Suchmechanik.
+    """
 
     pattern: TermPattern
     scan: ScanField
     hit: TermHit
+    vetoed: bool = False
 
 
 @runtime_checkable
@@ -117,11 +124,12 @@ def find_pattern_hits(
     veto_terms: tuple[str, ...] = (),
     veto_window: int = 0,
 ) -> list[PatternHit]:
-    """Sucht alle Muster in einem Feld und verwirft kontext-vetotierte Treffer.
+    """Sucht alle Muster in einem Feld und markiert kontext-vetotierte Treffer.
 
-    Ein Treffer faellt weg, wenn innerhalb von ``veto_window`` Zeichen ein
-    Veto-Begriff steht - das entlarvt Zulieferer ("Software fuer Arztpraxen"),
-    ohne echte Treffer generell zu schwaechen.
+    Ein Treffer gilt als entkraeftet, wenn innerhalb von ``veto_window`` Zeichen
+    ein Veto-Begriff steht - das entlarvt Zulieferer ("Software fuer
+    Arztpraxen"), ohne echte Treffer generell zu schwaechen. Die Bewertung
+    solcher Treffer bleibt dem aufrufenden Gate ueberlassen.
     """
     folded = scan.folded()
     vetoes = _veto_spans(folded, veto_terms) if veto_terms and veto_window else []
@@ -133,13 +141,12 @@ def find_pattern_hits(
             else find_term(folded, pattern.folded_term, pattern.mode)
         )
         for hit in hits:
-            if any(
+            vetoed = any(
                 hit.folded_start - veto_window <= veto_end
                 and veto_start <= hit.folded_end + veto_window
                 for veto_start, veto_end in vetoes
-            ):
-                continue
-            results.append(PatternHit(pattern=pattern, scan=scan, hit=hit))
+            )
+            results.append(PatternHit(pattern=pattern, scan=scan, hit=hit, vetoed=vetoed))
     return results
 
 
