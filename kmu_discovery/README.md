@@ -6,7 +6,7 @@ Schmerz von blossem Schmerz.
 
 Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 
-## Stand: Modul 1 – Datenmodelle und deterministische Gates
+## Stand: Modul 2 – LINDAS-Client auf live erhobener Feldtabelle
 
 | Baustein | Ort | Status |
 |---|---|---|
@@ -16,9 +16,10 @@ Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 | ERP-Negativfilter | `gates/erp.py`, `config/erp_rules.yaml` | fertig |
 | Gate-Kette | `gates/base.py` | fertig |
 | Lauf-Statistik (`RunStats`) | `output/stats.py` | fertig |
-| LINDAS-Felderhebung (Messinstrument) | `scripts/probe_lindas.py` | fertig, Lauf blockiert |
+| LINDAS-Felderhebung (Messinstrument) | `scripts/probe_lindas.py`, `docs/lindas_feldtabelle.md` | fertig, live erhoben 2026-09-16 |
 | Quellen-Unterbau (Token-Bucket, Retry, Cache, Fehler) | `sources/base.py`, `config/rate_limits.yaml` | fertig |
-| Quellen-Clients (Zefix, LINDAS, SHAB, …) | `sources/` | offen – wartet auf die Feldtabelle |
+| LINDAS-Client (Zefix-Stammdaten) | `sources/lindas.py` | fertig |
+| Weitere Quellen-Clients (Zefix-REST, SHAB, UID-BFS, Websites) | `sources/` | offen |
 | LLM-Extraktion mit Structured Outputs | `extraction/` | offen |
 | Scoring und Cluster-Report | `scoring/`, `output/` | offen |
 
@@ -190,31 +191,65 @@ Felder einer Quelle voraus:
 
 Uhr, Schlaf und Sender sind injizierbar – die 29 Tests dazu laufen ohne Netz.
 
-## Modul 2: Netzzugang fehlt
+## Modul 2: LINDAS-Client
 
-`sources/lindas.py` entsteht erst auf Basis einer **live erhobenen**
-Feldtabelle, nicht aus erinnerten Prädikatnamen. Das Messinstrument dafür steht
-(`scripts/probe_lindas.py`), der Lauf scheitert aber am Egress-Proxy dieser
-Umgebung:
+`sources/lindas.py` liest Zefix-Stammdaten über den SPARQL-Endpunkt
+`https://lindas.admin.ch/query`, Graph `https://lindas.admin.ch/foj/zefix`
+(793 459 Betriebe am 2026-09-16). Jeder Prädikatname stammt aus der live
+erhobenen Feldtabelle in `docs/lindas_feldtabelle.md` (Rohdaten daneben als
+JSON), keiner aus dem Gedächtnis.
 
+Was der Graph liefert und wohin es geht:
+
+| LINDAS-Feld | Abdeckung | Ziel im `CompanyProfile` |
+|---|---:|---|
+| `schema:legalName` | 100 % | `name`, Beleg `schema:legalName` |
+| `schema:name` (Sprachfassungen) | 99.99 % | `ZefixRecord.alternate_names` |
+| `schema:identifier` → `CompanyUID` | 100 % | `uid` (normalisiert auf `CHE-123.456.789`) |
+| `schema:additionalType` (eCH-0097) | 100 % | `rechtsform`, Beleg |
+| `schema:description` (Zweckartikel) | 98.4 % | `zweck`, `TextDocument(REGISTER_PURPOSE)`, Beleg |
+| `schema:address` → Strasse, PLZ, Ort, `addressRegion` | 100 % / 99.5 % | `standort`, Beleg |
+| `schema.ld.admin.ch/municipality` | 100 % | `ZefixRecord.municipality_bfs` |
+
+Was der Graph **nicht** liefert und deshalb leer bleibt: NOGA-Code,
+Grössenklasse, Website, E-Mail, zeichnungsberechtigte Personen (die Klasse
+`schema:Person` hat eine einzige Instanz, die Metadaten des Datensatzes) und
+ein Statusfeld. Ein Liquidationszusatz steht nur in der Firma;
+`ZefixRecord.in_liquidation` erkennt ihn (de/fr/it), entscheidet aber nichts –
+das ist Sache eines Gates.
+
+```python
+from pathlib import Path
+from kmu_discovery.models import Rechtsform
+from kmu_discovery.sources import LindasClient, profile_from_record
+
+client = LindasClient.build(cache_dir=Path(".cache/rohdaten"))
+profile = client.fetch_profile("CHE-242.294.601")          # ein Betrieb per UID
+for record in client.iter_companies("GL", [Rechtsform.GMBH, Rechtsform.AG]):
+    if not record.in_liquidation:
+        profile = profile_from_record(record)               # Belege inklusive
 ```
-$ python scripts/probe_lindas.py
-Erhebung fehlgeschlagen: Endpunkt nach 4 Versuchen nicht erreichbar:
-<urlopen error Tunnel connection failed: 403 Forbidden>
-```
 
-Blockiert sind unter anderem `lindas.admin.ch`, `www.zefix.admin.ch` und
-`jupyter.zazuko.com`. Sobald die Hosts in der Netzwerkrichtlinie freigegeben
-sind, liefert ein Aufruf die Tabelle:
+Jede übernommene Angabe trägt einen `Evidence`-Beleg mit der dereferenzierbaren
+Betriebs-IRI (`https://register.ld.admin.ch/zefix/company/<id>`) und dem
+Prädikat als `locator`. Der Client kennt nur LINDAS; Rate-Limit (1 req/s,
+Burst 2), Retry, Rohdaten-Cache und typisierte Fehler kommen vom Transport aus
+`sources/base.py`. UID und Kanton werden vor dem Einsetzen in die Abfrage
+validiert; ein Rechtsformfilter läuft über `VALUES`, nie über Textinterpolation.
+Die seitenweise Abfrage sortiert stabil nach Betriebs-IRI, damit ein
+wiederholter Lauf dieselben Seiten trifft und aus dem Cache bedient wird.
+
+Live gemessen: Einzelabruf und eine Seite von 100 Betrieben antworten in unter
+zwei Sekunden. Die 46 Tests des Clients laufen ohne Netz gegen Antworten in der
+live gesehenen Form.
+
+Erhebung wiederholen (der automatische Graph-Scan des Skripts zählt alle Tripel
+des Endpunkts und läuft ins Timeout; Graph und Klasse deshalb explizit):
 
 ```bash
-python scripts/probe_lindas.py --dry-run            # Abfragen gegenlesen
-python scripts/probe_lindas.py --json-out lindas_felder.json
+python scripts/probe_lindas.py --graph https://lindas.admin.ch/foj/zefix \
+    --class https://schema.ld.admin.ch/ZefixOrganisation --timeout 120
 ```
-
-Das Skript ermittelt Graph und Zielklasse selbst (Schritte 1 und 2), nimmt sie
-also nicht an, und erhebt je Prädikat Abdeckung, Vorkommen, maximale
-Kardinalität je Subjekt, Datentyp und Beispielwert.
 
 ## Offene Verifikationsschulden
 

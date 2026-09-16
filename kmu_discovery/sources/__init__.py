@@ -11,9 +11,11 @@ from kmu_discovery.sources.base import (
     SourceUnavailableError,
     TokenBucket,
 )
+from kmu_discovery.sources.lindas import LindasClient, ZefixRecord, profile_from_record
 
 __all__ = [
     "HttpTransport",
+    "LindasClient",
     "RawCache",
     "RawRecord",
     "SourceBadResponseError",
@@ -22,4 +24,6 @@ __all__ = [
     "SourceTimeoutError",
     "SourceUnavailableError",
     "TokenBucket",
+    "ZefixRecord",
+    "profile_from_record",
 ]
