@@ -17,6 +17,7 @@ Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 | Gate-Kette | `gates/base.py` | fertig |
 | Lauf-Statistik (`RunStats`) | `output/stats.py` | fertig |
 | LINDAS-Felderhebung (Messinstrument) | `scripts/probe_lindas.py` | fertig, Lauf blockiert |
+| Quellen-Unterbau (Token-Bucket, Retry, Cache, Fehler) | `sources/base.py`, `config/rate_limits.yaml` | fertig |
 | Quellen-Clients (Zefix, LINDAS, SHAB, …) | `sources/` | offen – wartet auf die Feldtabelle |
 | LLM-Extraktion mit Structured Outputs | `extraction/` | offen |
 | Scoring und Cluster-Report | `scoring/`, `output/` | offen |
@@ -169,6 +170,25 @@ Kontext und – ausser bei NOGA-Treffern – die Quell-URL. Ohne Beleg kein Sign
 Wortlisten, NOGA-Präfixe, Schwellenwerte und Veto-Begriffe stehen in
 `config/*.yaml` und sind ohne Code-Änderung anpassbar. Die Startwerte sind
 Marktkenntnis, keine Messung; sie gehören gegen echte Gespräche rekalibriert.
+
+## Quellen-Unterbau
+
+Jede Quelle bekommt genau einen Client; kein Client kennt eine andere Quelle.
+Was alle brauchen, liegt in `sources/base.py` und setzt keine Kenntnis über
+Felder einer Quelle voraus:
+
+* **Token-Bucket** je Quelle, Werte in `config/rate_limits.yaml` (UID-Webservice
+  hart auf 20/min, Firmen-Websites auf eine Anfrage je zwei Sekunden).
+* **Retry** mit exponentiellem Backoff und Jitter; `Retry-After` hat Vorrang und
+  wird gedeckelt. 429 und 5xx werden wiederholt, 4xx nie.
+* **Typisierte Fehler** (`SourceUnavailableError`, `SourceTimeoutError`,
+  `SourceRateLimitedError`, `SourceBadResponseError`), jeder mit Quelle und URL –
+  der Client entscheidet, ob ein Betrieb übersprungen wird; der Batch läuft.
+* **Rohdaten-Cache** als JSON je Anfrage mit Zeitstempel und Quell-URL.
+  Wiederholte Läufe rufen nichts doppelt ab; `max_age` erzwingt Frische.
+* **Zähler** für gesendete Aufrufe und Cache-Treffer je Transport.
+
+Uhr, Schlaf und Sender sind injizierbar – die 29 Tests dazu laufen ohne Netz.
 
 ## Modul 2: Netzzugang fehlt
 
