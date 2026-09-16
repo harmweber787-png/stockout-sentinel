@@ -6,7 +6,7 @@ Schmerz von blossem Schmerz.
 
 Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 
-## Stand: Modul 2 – LINDAS-Client auf live erhobener Feldtabelle
+## Stand: Modul 2 – Register-Clients auf live erhobenen Feldtabellen
 
 | Baustein | Ort | Status |
 |---|---|---|
@@ -19,7 +19,10 @@ Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 | LINDAS-Felderhebung (Messinstrument) | `scripts/probe_lindas.py`, `docs/lindas_feldtabelle.md` | fertig, live erhoben 2026-09-16 |
 | Quellen-Unterbau (Token-Bucket, Retry, Cache, Fehler) | `sources/base.py`, `config/rate_limits.yaml` | fertig |
 | LINDAS-Client (Zefix-Stammdaten) | `sources/lindas.py` | fertig |
-| Weitere Quellen-Clients (Zefix-REST, SHAB, UID-BFS, Websites) | `sources/` | offen |
+| Zefix-Felderhebung (Messinstrument) | `scripts/probe_zefix.py`, `docs/zefix_feldtabelle.md` | fertig, Abdeckung wartet auf Zugangsdaten |
+| Zefix-Client (Public REST API) | `sources/zefix.py`, `docs/zefix_felder.md` | fertig, ungetestet gegen echte Antworten |
+| eCH-0097-Rechtsformtabelle (gemeinsam) | `sources/legal_forms.py` | fertig |
+| Weitere Quellen-Clients (SHAB, UID-BFS, Websites) | `sources/` | offen |
 | LLM-Extraktion mit Structured Outputs | `extraction/` | offen |
 | Scoring und Cluster-Report | `scoring/`, `output/` | offen |
 
@@ -250,6 +253,48 @@ des Endpunkts und läuft ins Timeout; Graph und Klasse deshalb explizit):
 python scripts/probe_lindas.py --graph https://lindas.admin.ch/foj/zefix \
     --class https://schema.ld.admin.ch/ZefixOrganisation --timeout 120
 ```
+
+## Modul 2b: Zefix-Client
+
+`sources/zefix.py` liest Registereinträge über die dokumentierte **Zefix
+Public REST API** (`https://www.zefix.admin.ch/ZefixPublicREST`, OGD-Lizenz).
+Die Feldnamen stammen aus der live gelesenen OpenAPI-Beschreibung (Version
+2.7.2.3, `docs/zefix_feldtabelle.md`). Zwei Einschränkungen, beide ehrlich im
+Code vermerkt:
+
+* **Zugangsdaten.** Die Daten-Endpunkte verlangen Basic-Auth. Ohne
+  `ZEFIX_USER`/`ZEFIX_PASSWORD` bricht `ZefixClient.build()` mit
+  `ZefixCredentialsError` ab; der Zugang wird beim Eidgenössischen Amt für das
+  Handelsregister beantragt. Die interne Web-API des Portals antwortet zwar
+  ohne Login, steht aber unter `Disallow: /` in dessen robots.txt und wird
+  nicht benutzt.
+* **Abdeckung nicht gemessen.** Ohne Zugang gab es keine Stichprobe. Alle
+  Felder sind optional modelliert, unbekannte Felder werden ignoriert, und die
+  Fehlerform bei unbekannter UID (HTTP 404 oder Fehlerobjekt `NOT_FOUND`) wird
+  in beiden Varianten behandelt. Sobald Zugangsdaten da sind, misst
+  `python scripts/probe_zefix.py --json-out docs/zefix_feldtabelle.json` die
+  Abdeckung an wenigen Stichproben.
+
+Was Zefix gegenüber LINDAS zusätzlich liefert: `status` (aktiv, in
+Liquidation, gelöscht), SHAB-Publikationen mit Datum und Mutationsart,
+Kapital, Revisionsstelle, Niederlassungen, Übernahmen, frühere Firmen. Welche
+davon kleine Betriebe mit manueller Administration verraten, steht in
+`docs/zefix_felder.md`. Ein Gründungsdatum kennt die API nicht.
+
+```python
+from kmu_discovery.models import Rechtsform
+from kmu_discovery.sources import ZefixClient, ZefixCredentials, profile_from_company
+
+client = ZefixClient.build(ZefixCredentials.from_env(), cache_dir=Path(".cache/rohdaten"))
+company = client.fetch_by_uid("CHE-242.294.601")        # bevorzugt den aktiven Eintrag
+hits = client.search("Zazuko", kanton="BE", rechtsform=Rechtsform.GMBH)
+```
+
+Die Suche hat keinen serverseitigen Limit-Parameter (die API bricht grosse
+Listen mit `RESULTLIST_TO_LARGE` ab); der Client kürzt auf `max_results` und
+stellt nur eng gefasste Suchen. Zugangsdaten gehen ausschliesslich in den
+`Authorization`-Header, nie in den Rohdaten-Cache. Die 38 Tests des Clients
+und die 8 Tests des Erhebungsskripts laufen ohne Netz.
 
 ## Offene Verifikationsschulden
 

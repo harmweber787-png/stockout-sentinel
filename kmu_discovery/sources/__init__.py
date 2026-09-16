@@ -12,6 +12,13 @@ from kmu_discovery.sources.base import (
     TokenBucket,
 )
 from kmu_discovery.sources.lindas import LindasClient, ZefixRecord, profile_from_record
+from kmu_discovery.sources.zefix import (
+    ZefixClient,
+    ZefixCompany,
+    ZefixCredentials,
+    ZefixCredentialsError,
+    profile_from_company,
+)
 
 __all__ = [
     "HttpTransport",
@@ -24,6 +31,11 @@ __all__ = [
     "SourceTimeoutError",
     "SourceUnavailableError",
     "TokenBucket",
+    "ZefixClient",
+    "ZefixCompany",
+    "ZefixCredentials",
+    "ZefixCredentialsError",
     "ZefixRecord",
+    "profile_from_company",
     "profile_from_record",
 ]

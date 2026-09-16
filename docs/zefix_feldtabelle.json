@@ -1,0 +1,731 @@
+{
+  "base_url": "https://www.zefix.admin.ch/ZefixPublicREST",
+  "api_version": "2.7.2.3",
+  "auth_scheme": "Zefix-Credentials: http/basic",
+  "credentials_used": false,
+  "auth_note": "HTTP 401 fuer https://www.zefix.admin.ch/ZefixPublicREST/api/v1/legalForm: Zugangsdaten noetig",
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/v1/company/search",
+      "response": "array<CompanyShort>"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/sogc/{id}",
+      "response": "SogcPublicationAndCompanyShort"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/sogc/bydate/{date}",
+      "response": "array<SogcPublicationAndCompanyShort>"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registryOfCommerce",
+      "response": "array<RegistryOfCommerce>"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registryOfCommerce/byBfsCommunityId/{id}",
+      "response": "RegistryOfCommerce"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/legalForm",
+      "response": "array<LegalForm>"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/company/uid/{id}",
+      "response": "array<CompanyFull>"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/company/ehraid/{id}",
+      "response": "CompanyFull"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/company/chid/{id}",
+      "response": "array<CompanyFull>"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/community",
+      "response": "array<BfsCommunity>"
+    }
+  ],
+  "spec_fields": [
+    {
+      "schema": "CompanyFull",
+      "name": "name",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "primary business name of the company"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "ehraid",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Internal company unique ID used by federal registry of commerce"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "uid",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "UID number, CHE..."
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "chid",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "CH-ID (old CH-number with 13 digits, which is no longer used in public)"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "legalSeatId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Legal seat ID (commune number according to the swiss official commune register)"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "legalSeat",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Legal seat name (name of the political commune)"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "registryOfCommerceId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Internal office number of the cantonal registry of commerce"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "legalForm",
+      "type": "LegalForm",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "legal form"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "status",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [
+        "ACTIVE",
+        "CANCELLED",
+        "BEING_CANCELLED"
+      ],
+      "description": "Current company status (active, in liquidation, deleted)"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "sogcDate",
+      "type": "string",
+      "format": "date",
+      "required": false,
+      "enum": [],
+      "description": "Date of the last publication in the SOGC"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "deletionDate",
+      "type": "string",
+      "format": "date",
+      "required": false,
+      "enum": [],
+      "description": "Date of deletion of the legal unit"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "translation",
+      "type": "array<string>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "company name translations"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "purpose",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "purpose"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "sogcPub",
+      "type": "array<SogcPublication>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "SOGC published publications regarding the registry of commerce"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "address",
+      "type": "Address",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "address"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "canton",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "2 character abbreviation of the canton"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "capitalNominal",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "nominal capital (only available for corporations)"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "capitalCurrency",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "currency of the nominal capital"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "headOffices",
+      "type": "array<CompanyShort>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "head offices"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "furtherHeadOffices",
+      "type": "array<CompanyShort>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "further head offices"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "branchOffices",
+      "type": "array<CompanyShort>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "branch offices"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "hasTakenOver",
+      "type": "array<CompanyShort>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "has taken over"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "wasTakenOverBy",
+      "type": "array<CompanyShort>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "was taken over by"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "auditCompanies",
+      "type": "array<CompanyShort>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "audit companies"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "oldNames",
+      "type": "array<CompanyOldName>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Previous names of the company"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "cantonalExcerptWeb",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Link to the excerpt of the cantonal commercial register (URL), based on RegistryOfCommerce url2/url4"
+    },
+    {
+      "schema": "CompanyFull",
+      "name": "zefixDetailWeb",
+      "type": "DFIEString",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Link to the detail view in Zefix (URL)"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "name",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "primary business name of the company"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "ehraid",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Internal company unique ID used by federal registry of commerce"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "uid",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "UID number, CHE..."
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "chid",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "CH-ID (old CH-number with 13 digits, which is no longer used in public)"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "legalSeatId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Legal seat ID (commune number according to the swiss official commune register)"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "legalSeat",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Legal seat name (name of the political commune)"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "registryOfCommerceId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Internal office number of the cantonal registry of commerce"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "legalForm",
+      "type": "LegalForm",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "legal form"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "status",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [
+        "ACTIVE",
+        "CANCELLED",
+        "BEING_CANCELLED"
+      ],
+      "description": "Current company status (active, in liquidation, deleted)"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "sogcDate",
+      "type": "string",
+      "format": "date",
+      "required": false,
+      "enum": [],
+      "description": "Date of the last publication in the SOGC"
+    },
+    {
+      "schema": "CompanyShort",
+      "name": "deletionDate",
+      "type": "string",
+      "format": "date",
+      "required": false,
+      "enum": [],
+      "description": "Date of deletion of the legal unit"
+    },
+    {
+      "schema": "Address",
+      "name": "organisation",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "organisation name"
+    },
+    {
+      "schema": "Address",
+      "name": "careOf",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "care of"
+    },
+    {
+      "schema": "Address",
+      "name": "street",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "street"
+    },
+    {
+      "schema": "Address",
+      "name": "houseNumber",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "house number"
+    },
+    {
+      "schema": "Address",
+      "name": "addon",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "address addon"
+    },
+    {
+      "schema": "Address",
+      "name": "poBox",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "PO box"
+    },
+    {
+      "schema": "Address",
+      "name": "city",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "city"
+    },
+    {
+      "schema": "Address",
+      "name": "swissZipCode",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "zip code"
+    },
+    {
+      "schema": "LegalForm",
+      "name": "id",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Internal legal form ID used by the commercial register"
+    },
+    {
+      "schema": "LegalForm",
+      "name": "uid",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Public legal form code according to the data standard eCH-0097"
+    },
+    {
+      "schema": "LegalForm",
+      "name": "name",
+      "type": "DFIEString",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "full name"
+    },
+    {
+      "schema": "LegalForm",
+      "name": "shortName",
+      "type": "DFIEString",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "abbreviation"
+    },
+    {
+      "schema": "SogcPublication",
+      "name": "sogcDate",
+      "type": "string",
+      "format": "date",
+      "required": false,
+      "enum": [],
+      "description": "Publication date of the SOGC"
+    },
+    {
+      "schema": "SogcPublication",
+      "name": "sogcId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Publication number of the particular publication in the SOGC(SOGC-ID)"
+    },
+    {
+      "schema": "SogcPublication",
+      "name": "registryOfCommerceId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Internal office number of the publishing cantonal registry of commerce"
+    },
+    {
+      "schema": "SogcPublication",
+      "name": "registryOfCommerceCanton",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Canton of the publishing registry of commerce"
+    },
+    {
+      "schema": "SogcPublication",
+      "name": "registryOfCommerceJournalId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "Number of the daily register (of the publishing register of commerce)"
+    },
+    {
+      "schema": "SogcPublication",
+      "name": "registryOfCommerceJournalDate",
+      "type": "string",
+      "format": "date",
+      "required": false,
+      "enum": [],
+      "description": "date of the daily register (of the publishing register of commerce)"
+    },
+    {
+      "schema": "SogcPublication",
+      "name": "message",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Formatted text of the publication"
+    },
+    {
+      "schema": "SogcPublication",
+      "name": "mutationTypes",
+      "type": "array<MutationType>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "mutation types"
+    },
+    {
+      "schema": "MutationType",
+      "name": "id",
+      "type": "integer",
+      "format": "int32",
+      "required": false,
+      "enum": [],
+      "description": ""
+    },
+    {
+      "schema": "MutationType",
+      "name": "key",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": ""
+    },
+    {
+      "schema": "CompanyOldName",
+      "name": "name",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "primary name"
+    },
+    {
+      "schema": "CompanyOldName",
+      "name": "sequenceNr",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "The sequence number provides a hint about the age of the entry. A bigger number is older"
+    },
+    {
+      "schema": "CompanyOldName",
+      "name": "translation",
+      "type": "array<string>",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "translations"
+    },
+    {
+      "schema": "CompanySearchQuery",
+      "name": "name",
+      "type": "string",
+      "format": null,
+      "required": true,
+      "enum": [],
+      "description": ""
+    },
+    {
+      "schema": "CompanySearchQuery",
+      "name": "legalFormId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "If a legal form ID is provided, only companies matching the given legal form are returned. The LegalForm endpoint provides the allowed values."
+    },
+    {
+      "schema": "CompanySearchQuery",
+      "name": "legalFormUid",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "If a legal form UID is provided, only companies matching the given legal form are returned. The LegalForm endpoint provides the allowed values."
+    },
+    {
+      "schema": "CompanySearchQuery",
+      "name": "registryOfCommerceId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "If a registryofcommerceID is given, only companies which have their seat in this registry district are returned. The RegistryOfCommerce endpoint provides all allowed values. Not allowed together with legalSeatId or canton"
+    },
+    {
+      "schema": "CompanySearchQuery",
+      "name": "legalSeatId",
+      "type": "integer",
+      "format": "int64",
+      "required": false,
+      "enum": [],
+      "description": "If a legal seat ID is given only companies with seat in the given political commune are returned. The Community endpoint provides all allowed values. Not allowed together with registryOfCommerceId or canton"
+    },
+    {
+      "schema": "CompanySearchQuery",
+      "name": "canton",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Not allowed together with registryOfCommerceId or legalSeatId"
+    },
+    {
+      "schema": "CompanySearchQuery",
+      "name": "activeOnly",
+      "type": "boolean",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": ""
+    },
+    {
+      "schema": "ErrorDetails",
+      "name": "type",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [
+        "INTERNAL_SERVER_ERROR",
+        "INVALID_QUERY_WORDS",
+        "INVALID_REQUEST_DATA",
+        "RESULTLIST_TO_LARGE",
+        "NOT_FOUND"
+      ],
+      "description": "Type of error"
+    },
+    {
+      "schema": "ErrorDetails",
+      "name": "message",
+      "type": "string",
+      "format": null,
+      "required": false,
+      "enum": [],
+      "description": "Details about the error"
+    }
+  ],
+  "coverage": [],
+  "sample_count": 0,
+  "search_hits": 0,
+  "legal_forms": [],
+  "requests": [
+    "GET /v3/api-docs",
+    "GET /api/v1/legalForm"
+  ]
+}
