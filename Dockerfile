@@ -93,10 +93,15 @@ ENV HF_HUB_OFFLINE=1 \
 
 WORKDIR /app
 COPY --chown=sentinel:sentinel src/ ./src/
+# Die Streamlit-Oberflaeche teilt sich Image und Modellgewichte mit der API.
+# Standard-Entrypoint bleibt die API; die UI wird per abweichendem CMD
+# gestartet (siehe README).
+COPY --chown=sentinel:sentinel app.py ./app.py
 
 USER sentinel
 
-EXPOSE 8000
+# 8000: REST-API (Standard) - 8501: Streamlit-Oberflaeche (alternativer CMD)
+EXPOSE 8000 8501
 
 # Readiness-Probe gegen den eigenen Health-Endpunkt. 'modell_geladen'
 # unterscheidet "Prozess lebt" von "Pflichtmodell einsatzbereit". Da die

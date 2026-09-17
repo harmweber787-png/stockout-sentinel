@@ -1,0 +1,229 @@
+{
+  "endpoint": "https://lindas.admin.ch/query",
+  "graph": "https://lindas.admin.ch/foj/zefix",
+  "target_class": "https://schema.ld.admin.ch/ZefixOrganisation",
+  "subject_total": 793459,
+  "graphs": [],
+  "classes": [
+    {
+      "class": "http://schema.org/PropertyValue",
+      "instances": 2380377
+    },
+    {
+      "class": "http://schema.org/DefinedTerm",
+      "instances": 793459
+    },
+    {
+      "class": "http://schema.org/Organization",
+      "instances": 793459
+    },
+    {
+      "class": "https://schema.ld.admin.ch/ZefixOrganisation",
+      "instances": 793459
+    },
+    {
+      "class": "http://schema.org/PostalAddress",
+      "instances": 793459
+    },
+    {
+      "class": "http://www.w3.org/ns/locn#Address",
+      "instances": 793459
+    },
+    {
+      "class": "http://rdfs.org/ns/void#Dataset",
+      "instances": 1
+    },
+    {
+      "class": "http://www.w3.org/ns/dcat#Dataset",
+      "instances": 1
+    },
+    {
+      "class": "http://schema.org/Dataset",
+      "instances": 1
+    },
+    {
+      "class": "http://schema.org/DefinedTermSet",
+      "instances": 1
+    },
+    {
+      "class": "https://cube.link/meta/SharedDimension",
+      "instances": 1
+    },
+    {
+      "class": "http://schema.org/Person",
+      "instances": 1
+    }
+  ],
+  "fields": [
+    {
+      "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "occurrences": 2380377,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 3,
+      "value_kind": "uri",
+      "datatype": null,
+      "sample_value": "http://schema.org/Organization"
+    },
+    {
+      "predicate": "http://schema.org/identifier",
+      "occurrences": 2380377,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 3,
+      "value_kind": "uri",
+      "datatype": null,
+      "sample_value": "https://register.ld.admin.ch/zefix/company/1767648/UID/CHE409751126"
+    },
+    {
+      "predicate": "http://schema.org/name",
+      "occurrences": 881619,
+      "distinct_subjects": 793394,
+      "coverage": 1.0,
+      "max_per_subject": 8,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Impasse Gourmet Sàrl"
+    },
+    {
+      "predicate": "http://schema.org/inDefinedTermSet",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "uri",
+      "datatype": null,
+      "sample_value": "https://ld.admin.ch/dimension/zefix"
+    },
+    {
+      "predicate": "http://schema.org/address",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "uri",
+      "datatype": null,
+      "sample_value": "https://register.ld.admin.ch/zefix/company/1767648/address"
+    },
+    {
+      "predicate": "http://schema.org/additionalType",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "uri",
+      "datatype": null,
+      "sample_value": "https://ld.admin.ch/ech/97/legalforms/0107"
+    },
+    {
+      "predicate": "http://schema.org/legalName",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Atelier Hora Sàrl"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#address",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "uri",
+      "datatype": null,
+      "sample_value": "https://register.ld.admin.ch/zefix/company/1767648/address"
+    },
+    {
+      "predicate": "https://schema.ld.admin.ch/municipality",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "uri",
+      "datatype": null,
+      "sample_value": "https://ld.admin.ch/municipality/6436"
+    },
+    {
+      "predicate": "http://schema.org/description",
+      "occurrences": 780548,
+      "distinct_subjects": 780548,
+      "coverage": 0.984,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "La société a pour but la fabrication et la vente de montres, de fournitures, de machines et appareils en rapport avec la mesure du temps. La société peut également accorder des prêts ou des garanties à des associés ou des tiers, dans l'intérêt de la société."
+    }
+  ],
+  "sample_subject": [
+    {
+      "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "value": "http://schema.org/DefinedTerm"
+    },
+    {
+      "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "value": "http://schema.org/Organization"
+    },
+    {
+      "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "value": "https://schema.ld.admin.ch/ZefixOrganisation"
+    },
+    {
+      "predicate": "http://schema.org/description",
+      "value": "Die Gesellschaft bezweckt das Herstellen von Produkten, den Handel, die Vermittlung und den Verleih von Personal sowie das Erbringen von Dienstleistungen im Bereich Linked Data, Software und Netzwerke. Die Gesellschaft kann Zweigniederlassungen und Tochtergesellschaften im In- und Ausland errichten und sich an anderen Unternehmen im In- und Ausland beteiligen sowie alle Geschäfte tätigen, die direkt oder indirekt mit ihrem Zweck in Zusammenhang stehen. Die Gesellschaft kann, sofern die gesetzlichen Bestimmungen erfüllt sind, im In- und Ausland Grundeigentum erwerben, belasten, veräussern und verwalten. Sie kann auch Finanzierungen für eigene oder fremde Rechnung vornehmen sowie Garantien und Bürgschaften für Tochtergesellschaften und Dritte eingehen."
+    },
+    {
+      "predicate": "http://schema.org/identifier",
+      "value": "https://register.ld.admin.ch/zefix/company/1198554/UID/CHE242294601"
+    },
+    {
+      "predicate": "http://schema.org/identifier",
+      "value": "https://register.ld.admin.ch/zefix/company/1198554/CHID/CH03640617915"
+    },
+    {
+      "predicate": "http://schema.org/identifier",
+      "value": "https://register.ld.admin.ch/zefix/company/1198554/EHRAID"
+    },
+    {
+      "predicate": "http://schema.org/inDefinedTermSet",
+      "value": "https://ld.admin.ch/dimension/zefix"
+    },
+    {
+      "predicate": "http://schema.org/address",
+      "value": "https://register.ld.admin.ch/zefix/company/1198554/address"
+    },
+    {
+      "predicate": "http://schema.org/additionalType",
+      "value": "https://ld.admin.ch/ech/97/legalforms/0107"
+    },
+    {
+      "predicate": "http://schema.org/legalName",
+      "value": "Zazuko GmbH"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#address",
+      "value": "https://register.ld.admin.ch/zefix/company/1198554/address"
+    },
+    {
+      "predicate": "https://schema.ld.admin.ch/municipality",
+      "value": "https://ld.admin.ch/municipality/371"
+    }
+  ],
+  "queries": [
+    "SELECT ?class (COUNT(?s) AS ?n)\nWHERE { GRAPH <https://lindas.admin.ch/foj/zefix> { ?s a ?class } }\nGROUP BY ?class\nORDER BY DESC(?n)\nLIMIT 40",
+    "SELECT (COUNT(DISTINCT ?s) AS ?n)\nWHERE { GRAPH <https://lindas.admin.ch/foj/zefix> { ?s a <https://schema.ld.admin.ch/ZefixOrganisation> } }",
+    "SELECT ?predicate\n       (COUNT(*) AS ?occurrences)\n       (COUNT(DISTINCT ?s) AS ?subjects)\n       (SAMPLE(?o) AS ?sample)\nWHERE {\n  GRAPH <https://lindas.admin.ch/foj/zefix> {\n    ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n    ?s ?predicate ?o .\n  }\n}\nGROUP BY ?predicate\nORDER BY DESC(?occurrences)\nLIMIT 40",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://schema.org/identifier> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://schema.org/name> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://schema.org/inDefinedTermSet> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://schema.org/address> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://schema.org/additionalType> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://schema.org/legalName> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://www.w3.org/ns/locn#address> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <https://schema.ld.admin.ch/municipality> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <https://schema.ld.admin.ch/ZefixOrganisation> .\n      ?s <http://schema.org/description> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT ?predicate ?value\nWHERE {\n  GRAPH <https://lindas.admin.ch/foj/zefix> {\n    { SELECT ?s WHERE { ?s a <https://schema.ld.admin.ch/ZefixOrganisation> } LIMIT 1 }\n    ?s ?predicate ?value .\n  }\n}\nLIMIT 40"
+  ]
+}

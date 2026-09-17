@@ -1,0 +1,55 @@
+# Rate-Limits und Wiederholungsregeln je Datenquelle.
+#
+# Ein Client kennt genau eine Quelle. Werte sind Startwerte aus der Recherche
+# (Stand 2026-09) und vor Produktivnutzung gegen die Nutzungsbedingungen der
+# jeweiligen Quelle zu verifizieren. Wo kein Limit dokumentiert ist, fahren wir
+# defensiv.
+#
+# requests_per_second : Dauerrate des Token-Buckets
+# burst               : wie viele Anfragen ohne Wartezeit hintereinander
+# max_attempts        : Versuche insgesamt (1 = kein Retry)
+# timeout_seconds     : je Anfrage
+# backoff_*           : exponentielles Backoff mit Jitter, Retry-After hat Vorrang
+
+version: "2026-09-16"
+
+defaults:
+  requests_per_second: 1.0
+  burst: 1
+  max_attempts: 4
+  timeout_seconds: 60.0
+  backoff_base_seconds: 2.0
+  backoff_max_seconds: 60.0
+
+sources:
+  lindas:
+    # Oeffentlicher SPARQL-Endpunkt, kein dokumentiertes Limit -> defensiv.
+    requests_per_second: 1.0
+    burst: 2
+    timeout_seconds: 120.0
+  zefix:
+    # REST mit Basic-Auth. Limit nicht dokumentiert: max. 1 req/s.
+    requests_per_second: 1.0
+    burst: 1
+  uid_bfs:
+    # UID-Webservice: 20 Anfragen pro Minute, hart einhalten.
+    requests_per_second: 0.333
+    burst: 1
+    timeout_seconds: 30.0
+  shab:
+    # Amtsblattportal-API, SECO-AGB vor Produktivnutzung pruefen.
+    requests_per_second: 1.0
+    burst: 1
+  opendata_swiss:
+    requests_per_second: 2.0
+    burst: 2
+  simap:
+    requests_per_second: 1.0
+    burst: 1
+  company_website:
+    # Fremde Infrastruktur: eine Anfrage alle zwei Sekunden je Host,
+    # robots.txt hat immer Vorrang (wird im Crawler durchgesetzt).
+    requests_per_second: 0.5
+    burst: 1
+    max_attempts: 2
+    timeout_seconds: 30.0

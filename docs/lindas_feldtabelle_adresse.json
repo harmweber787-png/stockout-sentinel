@@ -1,0 +1,276 @@
+{
+  "endpoint": "https://lindas.admin.ch/query",
+  "graph": "https://lindas.admin.ch/foj/zefix",
+  "target_class": "http://schema.org/PostalAddress",
+  "subject_total": 793459,
+  "graphs": [],
+  "classes": [
+    {
+      "class": "http://schema.org/PropertyValue",
+      "instances": 2380377
+    },
+    {
+      "class": "http://schema.org/DefinedTerm",
+      "instances": 793459
+    },
+    {
+      "class": "http://schema.org/Organization",
+      "instances": 793459
+    },
+    {
+      "class": "https://schema.ld.admin.ch/ZefixOrganisation",
+      "instances": 793459
+    },
+    {
+      "class": "http://schema.org/PostalAddress",
+      "instances": 793459
+    },
+    {
+      "class": "http://www.w3.org/ns/locn#Address",
+      "instances": 793459
+    },
+    {
+      "class": "http://rdfs.org/ns/void#Dataset",
+      "instances": 1
+    },
+    {
+      "class": "http://www.w3.org/ns/dcat#Dataset",
+      "instances": 1
+    },
+    {
+      "class": "http://schema.org/Dataset",
+      "instances": 1
+    },
+    {
+      "class": "http://schema.org/DefinedTermSet",
+      "instances": 1
+    },
+    {
+      "class": "https://cube.link/meta/SharedDimension",
+      "instances": 1
+    },
+    {
+      "class": "http://schema.org/Person",
+      "instances": 1
+    }
+  ],
+  "fields": [
+    {
+      "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "occurrences": 1586918,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 2,
+      "value_kind": "uri",
+      "datatype": null,
+      "sample_value": "http://www.w3.org/ns/locn#Address"
+    },
+    {
+      "predicate": "http://schema.org/streetAddress",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Les Foyards 46"
+    },
+    {
+      "predicate": "http://schema.org/addressLocality",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "La Chaux-de-Fonds"
+    },
+    {
+      "predicate": "http://schema.org/addressRegion",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "NE"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#postName",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Les Brenets"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#adminUnitL2",
+      "occurrences": 793459,
+      "distinct_subjects": 793459,
+      "coverage": 1.0,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "NE"
+    },
+    {
+      "predicate": "http://schema.org/postalCode",
+      "occurrences": 789790,
+      "distinct_subjects": 789790,
+      "coverage": 0.995,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "2416"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#postCode",
+      "occurrences": 789790,
+      "distinct_subjects": 789790,
+      "coverage": 0.995,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "2416"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#thoroughfare",
+      "occurrences": 787731,
+      "distinct_subjects": 787731,
+      "coverage": 0.993,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Rue du Lac"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#locatorDesignator",
+      "occurrences": 777553,
+      "distinct_subjects": 777553,
+      "coverage": 0.98,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "26"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#locatorName",
+      "occurrences": 130787,
+      "distinct_subjects": 130787,
+      "coverage": 0.165,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "c/o NRG Solutions AG"
+    },
+    {
+      "predicate": "http://schema.org/areaServed",
+      "occurrences": 24048,
+      "distinct_subjects": 24048,
+      "coverage": 0.03,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Welle 7"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#addressArea",
+      "occurrences": 24048,
+      "distinct_subjects": 24048,
+      "coverage": 0.03,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Welle 7"
+    },
+    {
+      "predicate": "http://schema.org/postOfficeBoxNumber",
+      "occurrences": 18190,
+      "distinct_subjects": 18190,
+      "coverage": 0.023,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Boîte postale 242"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#poBox",
+      "occurrences": 18190,
+      "distinct_subjects": 18190,
+      "coverage": 0.023,
+      "max_per_subject": 1,
+      "value_kind": "literal",
+      "datatype": null,
+      "sample_value": "Boîte postale 242"
+    }
+  ],
+  "sample_subject": [
+    {
+      "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "value": "http://schema.org/PostalAddress"
+    },
+    {
+      "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "value": "http://www.w3.org/ns/locn#Address"
+    },
+    {
+      "predicate": "http://schema.org/streetAddress",
+      "value": "Reitergasse 9"
+    },
+    {
+      "predicate": "http://schema.org/postalCode",
+      "value": "8004"
+    },
+    {
+      "predicate": "http://schema.org/addressLocality",
+      "value": "Zürich"
+    },
+    {
+      "predicate": "http://schema.org/addressRegion",
+      "value": "ZH"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#thoroughfare",
+      "value": "Reitergasse"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#locatorDesignator",
+      "value": "9"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#postCode",
+      "value": "8004"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#postName",
+      "value": "Zürich"
+    },
+    {
+      "predicate": "http://www.w3.org/ns/locn#adminUnitL2",
+      "value": "ZH"
+    }
+  ],
+  "queries": [
+    "SELECT ?class (COUNT(?s) AS ?n)\nWHERE { GRAPH <https://lindas.admin.ch/foj/zefix> { ?s a ?class } }\nGROUP BY ?class\nORDER BY DESC(?n)\nLIMIT 40",
+    "SELECT (COUNT(DISTINCT ?s) AS ?n)\nWHERE { GRAPH <https://lindas.admin.ch/foj/zefix> { ?s a <http://schema.org/PostalAddress> } }",
+    "SELECT ?predicate\n       (COUNT(*) AS ?occurrences)\n       (COUNT(DISTINCT ?s) AS ?subjects)\n       (SAMPLE(?o) AS ?sample)\nWHERE {\n  GRAPH <https://lindas.admin.ch/foj/zefix> {\n    ?s a <http://schema.org/PostalAddress> .\n    ?s ?predicate ?o .\n  }\n}\nGROUP BY ?predicate\nORDER BY DESC(?occurrences)\nLIMIT 40",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://schema.org/streetAddress> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://schema.org/addressLocality> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://schema.org/addressRegion> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/ns/locn#postName> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/ns/locn#adminUnitL2> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://schema.org/postalCode> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/ns/locn#postCode> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/ns/locn#thoroughfare> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/ns/locn#locatorDesignator> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/ns/locn#locatorName> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://schema.org/areaServed> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/ns/locn#addressArea> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://schema.org/postOfficeBoxNumber> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT (MAX(?n) AS ?max_per_subject)\nWHERE {\n  SELECT ?s (COUNT(?o) AS ?n)\n  WHERE {\n    GRAPH <https://lindas.admin.ch/foj/zefix> {\n      ?s a <http://schema.org/PostalAddress> .\n      ?s <http://www.w3.org/ns/locn#poBox> ?o .\n    }\n  }\n  GROUP BY ?s\n}",
+    "SELECT ?predicate ?value\nWHERE {\n  GRAPH <https://lindas.admin.ch/foj/zefix> {\n    { SELECT ?s WHERE { ?s a <http://schema.org/PostalAddress> } LIMIT 1 }\n    ?s ?predicate ?value .\n  }\n}\nLIMIT 40"
+  ]
+}

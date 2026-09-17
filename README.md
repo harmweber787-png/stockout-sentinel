@@ -36,6 +36,18 @@ ausschließlich, was im Request übergeben wird.
 
 ---
 
+## Zwei Zugänge
+
+| Zugang | Start | Für wen |
+|---|---|---|
+| **REST-API** | `uvicorn src.api:app` | System-zu-System: ERP, Planungstools, Batch-Jobs. |
+| **Weboberfläche** | `streamlit run app.py` | Disponentinnen und Disponenten: CSV hochladen, Verlauf ansehen, Prioritätenliste abarbeiten. |
+
+Beide greifen auf dieselbe Engine zu — die Oberfläche rechnet nichts
+eigenständig, sie stellt die Ergebnisse von `src.engine` dar.
+
+---
+
 ## Eigenschaften
 
 | Eigenschaft | Umsetzung |
@@ -90,6 +102,8 @@ austauschbar.
 | `src/adapters/csv_ingest.py` | CSV-Import mit flexibler Spaltenzuordnung. |
 | `src/engine.py` | Anwendungskern: Prognosekette + Priorisierung. |
 | `src/api.py` | FastAPI-Endpunkte. |
+| `app.py` | Streamlit-Oberfläche (Treiber-Adapter wie `api.py`). |
+| `src/demo_daten.py` | Programmatisch erzeugte Demo-Szenarien für die Oberfläche. |
 | `src/config.py` | Laufzeitkonfiguration über Umgebungsvariablen. |
 
 ---
@@ -261,6 +275,105 @@ Das Feld `prognose_modell` jeder Antwort weist die tatsächlich geladene Quelle
 aus — eine Bestellempfehlung muss nachvollziehbar machen, welche Gewichte sie
 erzeugt haben.
 
+## Weboberfläche
+
+```bash
+streamlit run app.py
+```
+
+Erreichbar unter <http://localhost:8501>. Die Oberfläche tritt als
+**„Sentinel B2B · Bestands- & Dispositions-Radar"** auf; Repository, REST-API
+und Paketnamen behalten den technischen Namen `stockout-sentinel`.
+
+Ein einklappbarer **Schnelleinstieg** unter dem Kopf erklärt den Ablauf in drei
+Schritten, benennt die vier Pflichtangaben (Artikel-ID, Lagerbestand, Lieferzeit
+in Tagen, mindestens zwei Verbrauchsperioden) und zeigt beide zulässigen
+Aufbauten als Muster-Tabelle samt kopierbarem Codeblock. Die Fachbegriffe
+(Meldebestand, Sicherheitsbestand, Reichweite) tragen Erklärtexte an Kennzahlen
+und Tabellenspalten — die Oberfläche soll ohne Dispositions-Vorwissen bedienbar
+sein. Ein Test liest die Musterzeilen durch den echten Importer, damit die
+Formatvorlage nicht von der Wirklichkeit abdriftet.
+
+Der Datei-Upload arbeitet **ohne Typenfilter**: Die „Dateien"-App unter iOS
+reicht Tabellen je nach Herkunft als `text/plain` oder ganz ohne Endung weiter,
+und eine Endungsliste graut sie dort aus. Was brauchbar ist, entscheidet
+ohnehin erst der Importer — und der meldet unlesbare Inhalte im Klartext.
+
+Für „Zum Home-Bildschirm" trägt die App ein Apple-Touch-Icon und den Namen
+`Sentinel B2B` in den Dokumentenkopf ein. Das geschieht über `st.iframe` und
+`window.parent`: `st.html()` entfernt `<link>` und `<script>` beim Bereinigen —
+im Browser nachgemessen, es landete kein einziger Link im DOM.
+
+Das Styling kommt als ein `<style>`-Block über `st.html()` und selektiert über
+eigene `sentinel-*`-Klassen sowie Streamlits `data-testid`-Attribute — nie über
+die generierten Hash-Klassen der Styling-Engine, die sich mit jeder Version
+ändern können. Das Signet wird als Base64-Data-URI im CSS eingebunden, weil
+`st.html()` ein `<svg>` im Markup beim Bereinigen entfernt.
+
+Drei Zonen:
+
+**1 · Eingabe** *(Seitenleiste)*
+* **CSV-Upload** — ERP-Export, gleiche flexible Spaltenzuordnung wie
+  `POST /api/v1/analyze-csv`. Die erkannte Zuordnung und alle Importhinweise
+  werden angezeigt.
+* **CSV-Text einfügen** — darunter ein Textfeld für den Weg ohne Datei-Dialog.
+  Auf Mobilgeräten ist das Auswählen einer Datei umständlich, Einfügen aus der
+  Zwischenablage nicht. Gerechnet wird erst auf **„Eingabe berechnen"**: Das
+  Textfeld löst beim Tippen und bei jedem Fokuswechsel einen Rerun aus, und
+  ohne diese Bestätigung würde die App auf halb eingefügtem Text rechnen und
+  Fehlermeldungen zeigen, die sich von selbst wieder erledigen. Der bestätigte
+  Inhalt liegt im Session-State und übersteht damit spätere Bedienschritte wie
+  das Verschieben des Horizont-Reglers.
+  Der Text wird über `io.StringIO` wie eine Datei gelesen; BOM, geschützte
+  Leerzeichen und gemischte Zeilenenden — die typischen Mitbringsel aus
+  Messengern — werden dabei bereinigt. Liegt beides vor, gewinnt die Datei und
+  die Oberfläche sagt das.
+* **Demo-Datensätze** — vier Szenarien (gemischtes Sortiment, Engpass,
+  Kapitalbindung, Saison). Sie werden **programmatisch erzeugt**: im
+  Repository liegen weiterhin keine Beispieldateien und keine
+  branchenspezifischen Stammdaten. Die Reihen sind deterministisch, und jedes
+  Szenario lässt sich als CSV herunterladen — nützlich als Formatvorlage.
+* **Prognosehorizont** — Schieberegler, wahlweise in Monaten (1–24) oder
+  Tagen (7–720). Der Horizont wird anhand der erkannten Kadenz in Perioden
+  umgerechnet: 90 Tage sind bei Monatsdaten drei, bei Tagesdaten 90 Perioden.
+
+**2 · Radar** — interaktiver Verlauf (zoom- und schwenkbar, mit Tooltips):
+Ist-Verbrauch, Prognosekurve (Median) und P10–P90-Korridor. Der Korridor
+stammt aus dem Quantilraster des Modells, nicht aus einer nachträglichen
+Schätzung.
+
+**3 · Entscheidung** — Ampel-Tabelle in der Reihenfolge der Prioritätenliste,
+mit Reichweite, Meldebestand, Nachbestellmenge, Sicherheitsbestand und
+Handlungsempfehlung. Nach Status filterbar und als CSV exportierbar.
+
+> Der Horizont ist eine **Darstellungsfrage**. Meldebestand und
+> Nachbestellmenge hängen nicht von ihm ab — sie stammen unverändert aus der
+> Einzelperiodenprognose.
+
+### Oberfläche im Container
+
+Image und Modellgewichte teilen sich API und Oberfläche; nur der Startbefehl
+unterscheidet sich:
+
+```bash
+docker run --rm -p 8501:8501 stockout-sentinel \
+  sh -c "streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
+```
+
+### Prognosemodell in der Oberfläche
+
+Es gelten dieselben Regeln wie in der API: Bei `FORCE_TIMESFM=true` läuft
+jede Prognose über TimesFM. Lässt sich das Modell nicht laden, **zeigt die
+Oberfläche einen Fehler und keine Zahlen** — sie rechnet bewusst nicht mit
+einem Ersatzverfahren weiter. Die Seitenleiste weist Modellstatus und
+Bezugsquelle der Gewichte aus. Zum Ausprobieren ohne Modellgewichte:
+
+```bash
+FORCE_TIMESFM=false STOCKOUT_PROGNOSE_STRATEGIE=statistisch streamlit run app.py
+```
+
+---
+
 ### Tests
 
 ```bash
@@ -271,6 +384,10 @@ Die Suite läuft **ohne Netzzugang und ohne Modellgewichte**: Formeln, CSV-Impor
 und API werden im Notbetrieb geprüft, das Pflichtmodell-Verhalten gegen ein
 Modell-Double mit der verifizierten TimesFM-Ausgabeform. Damit bleibt CI
 unabhängig von der Erreichbarkeit des Hugging-Face-Hubs.
+
+Die Oberfläche wird mit Streamlits `AppTest` geprüft — das Skript läuft dabei
+wirklich, Widgets werden bedient und Ausnahmen sichtbar gemacht; ein Browser
+ist dafür nicht nötig.
 
 ---
 
@@ -531,3 +648,14 @@ kein nicht gegriffener Volume-Mount.
 Wer den Service dagegen ohne das Image betreibt (`uvicorn` direkt, ohne
 `MODEL_DIR`), holt das Checkpoint beim Start vom Hub und handelt sich die
 Netzabhängigkeit wieder ein.
+
+---
+
+## Zweites Projekt in diesem Repository: `kmu_discovery/`
+
+Neben dem Dispositions-Service liegt in diesem Repository die **Swiss KMU
+Problem-Discovery-Engine** (`kmu_discovery/`). Sie ist vollständig unabhängig
+von `src/`: eigene Abhängigkeiten (`requirements-kmu-discovery.txt`), eigene
+Tests (`tests_kmu_discovery/`), keine gemeinsamen Module.
+
+Details siehe [`kmu_discovery/README.md`](kmu_discovery/README.md).
