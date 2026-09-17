@@ -648,3 +648,14 @@ kein nicht gegriffener Volume-Mount.
 Wer den Service dagegen ohne das Image betreibt (`uvicorn` direkt, ohne
 `MODEL_DIR`), holt das Checkpoint beim Start vom Hub und handelt sich die
 Netzabhängigkeit wieder ein.
+
+---
+
+## Zweites Projekt in diesem Repository: `kmu_discovery/`
+
+Neben dem Dispositions-Service liegt in diesem Repository die **Swiss KMU
+Problem-Discovery-Engine** (`kmu_discovery/`). Sie ist vollständig unabhängig
+von `src/`: eigene Abhängigkeiten (`requirements-kmu-discovery.txt`), eigene
+Tests (`tests_kmu_discovery/`), keine gemeinsamen Module.
+
+Details siehe [`kmu_discovery/README.md`](kmu_discovery/README.md).
