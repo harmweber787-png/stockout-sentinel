@@ -345,7 +345,11 @@ async def test_a04b_backoff_deckel_16s(
     settings: Settings, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     svc = mock_service()
-    messages_api(svc).get.return_value.execute.side_effect = [http_error(503)] * 6
+    # Deckel 16 s wird erst mit mehr Wiederholungen erreicht; hier bewusst 6.
+    echt = settings.model_copy(
+        update={"gmail_backoff_base_s": 1.0, "gmail_max_retries": 6}
+    )
+    messages_api(svc).get.return_value.execute.side_effect = [http_error(503)] * 7
     schlaf: list[float] = []
 
     async def merke(sekunden: float) -> None:
@@ -353,13 +357,12 @@ async def test_a04b_backoff_deckel_16s(
 
     monkeypatch.setattr(random, "uniform", lambda lo, hi: 1.0)
     monkeypatch.setattr(asyncio, "sleep", merke)
-    echt = settings.model_copy(update={"gmail_backoff_base_s": 1.0})
     adapter = GmailAdapter(echt, service=svc)
 
     with pytest.raises(MailAdapterError):
         await adapter.get_message("m1")
 
-    assert schlaf == [1.0, 2.0, 4.0, 8.0, 16.0]
+    assert schlaf == [1.0, 2.0, 4.0, 8.0, 16.0, 16.0]
 
 
 @pytest.mark.asyncio

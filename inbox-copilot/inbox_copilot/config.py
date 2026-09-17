@@ -129,9 +129,10 @@ class Settings(BaseSettings):
     gmail_credentials_path: Path = Path("secrets/oauth_client.json")
     gmail_token_path: Path = Path("secrets/token.json")
     gmail_state_path: Path = Path("state/gmail_state.json")
-    # Backoff: max. gmail_max_retries Wiederholungen nach dem Erstversuch,
-    # Wartezeit min(base * 2**n, max) * random.uniform(*jitter) -> 1/2/4/8/16 s.
-    gmail_max_retries: int = 5
+    # Backoff: max. gmail_max_retries Wiederholungen nach dem Erstversuch
+    # (also max. 5 Versuche), Wartezeit min(base * 2**n, max) *
+    # random.uniform(*jitter) -> 1/2/4/8 s, Deckel 16 s.
+    gmail_max_retries: int = 4
     gmail_backoff_base_s: float = 1.0
     gmail_backoff_max_s: float = 16.0
     gmail_jitter: tuple[float, float] = (0.5, 1.5)
