@@ -1,0 +1,62 @@
+{
+  "id": "18f0a1b2c3d4e5f8",
+  "threadId": "18f0a1b2c3d4e500",
+  "labelIds": [
+    "INBOX",
+    "UNREAD"
+  ],
+  "snippet": "",
+  "internalDate": "1789280100000",
+  "sizeEstimate": 4096,
+  "payload": {
+    "partId": "",
+    "mimeType": "multipart/mixed",
+    "filename": "",
+    "headers": [
+      {
+        "name": "From",
+        "value": "Beat Meier <b.meier@bauleitung-meier.ch>"
+      },
+      {
+        "name": "To",
+        "value": "info@weber-bau.example"
+      },
+      {
+        "name": "Subject",
+        "value": "Maengelruege Fassade Bauvorhaben Urdorf"
+      },
+      {
+        "name": "Date",
+        "value": "Sun, 13 Sep 2026 08:15:00 +0200"
+      },
+      {
+        "name": "Message-ID",
+        "value": "<sia118-0001@bauleitung-meier.ch>"
+      },
+      {
+        "name": "References",
+        "value": "<offerte-0815@weber-bau.example>"
+      }
+    ],
+    "body": {
+      "size": 0
+    },
+    "parts": [
+      {
+        "partId": "0",
+        "mimeType": "text/plain",
+        "filename": "",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "text/plain; charset=\"iso-8859-1\""
+          }
+        ],
+        "body": {
+          "size": 119,
+          "data": "R3L8ZXppIEhlcnIgV2ViZXIKCkRpZSBN5G5nZWwgYW4gZGVyIEZhc3NhZGUgbfxzc2VuIGJpcyAyNS4gU2VwdGVtYmVyIDIwMjYgYmVob2JlbiBzZWluLgoKRnJldW5kbGljaGUgR3L8c3NlCkJlYXQgTWVpZXI"
+        }
+      }
+    ]
+  }
+}

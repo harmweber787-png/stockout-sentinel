@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inbox-copilot"
+version = "0.2.0"
+description = "Inbox & Operations Copilot fuer Schweizer KMU - Modul M-1: Triage und Antwortentwuerfe im Gmail-Postfach"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "anthropic>=0.40",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.2",
+    "google-api-python-client>=2.100",
+    "google-auth-oauthlib>=1.2",
+    "google-auth-httplib2>=0.2",
+    "pypdf>=4.0",
+    "beautifulsoup4>=4.12",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "mypy>=1.10",
+    "ruff>=0.5",
+    "types-PyYAML",
+]
+
+[project.scripts]
+inbox-copilot = "inbox_copilot.runner:main"
+
+[tool.setuptools.packages.find]
+include = ["inbox_copilot*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q --strict-markers"
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["inbox_copilot", "tests"]
+
+[[tool.mypy.overrides]]
+module = [
+    "googleapiclient.*",
+    "google_auth_oauthlib.*",
+    "google.oauth2.*",
+    "google.auth.*",
+    "httplib2.*",
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "BLE", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]
