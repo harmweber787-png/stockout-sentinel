@@ -1,0 +1,4535 @@
+{
+  "base_url": "https://amtsblattportal.ch/api/v1",
+  "cantons": [
+    "ZH",
+    "AG",
+    "ZG"
+  ],
+  "sub_rubrics": [
+    "HR01",
+    "HR02",
+    "HR03"
+  ],
+  "date_start": "2026-06-19",
+  "date_end": "2026-09-17",
+  "schema_version": "1.26",
+  "totals": {
+    "HR01": 4177,
+    "HR02": 18101,
+    "HR03": 2901
+  },
+  "totals_per_canton": {
+    "HR01": {
+      "ZH": 2438,
+      "AG": 875,
+      "ZG": 864
+    },
+    "HR02": {
+      "ZH": 10428,
+      "AG": 2909,
+      "ZG": 4764
+    },
+    "HR03": {
+      "ZH": 1801,
+      "AG": 591,
+      "ZG": 509
+    }
+  },
+  "meta_coverage": [
+    {
+      "scope": "HR01",
+      "path": "meta.id",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "0c65a54b-7361-491f-890d-82ab8272d5a5"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.creationDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-15T13:10:11.443Z"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.updateDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-16T22:39:18.307Z"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.rubric",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.subRubric",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR01"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.language",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "de"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.id",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "e15a629a-a08d-11e8-aa11-0050569d3c43"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.displayName",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bundesamt für Justiz (BJ), Eidgenössisches Amt für das Handelsregister"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.street",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bundesrain"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.streetNumber",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "20"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.swissZipCode",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "3003"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.town",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bern"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.containsPostOfficeBox",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "False"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.postOfficeBox",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.municipalityId",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.registrationOffice.uid",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.publicationOriginator",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.publicationNumber",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR01-1006759110"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.publicationState",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "PUBLISHED"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.publicationDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-17T00:00:00.000Z"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.expirationDate",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.primaryTenantCode",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "shab"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.onBehalfOf",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.invoiceAddressId",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.legalRemedy",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Die aufgeführte Rechtseinheit wurde ins Handelsregister aufgenommen und ist rech"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.cantons[]",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "AG"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.secondaryTenants",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.repeatedPublications",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.customsStampImages",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.title.de",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Neueintragung Nothelfer Star Campos García, Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.title.en",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "New entries Nothelfer Star Campos García, Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.title.it",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Nuove registrazioni Nothelfer Star Campos García, Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.title.fr",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Nouvelles entrées Nothelfer Star Campos García, Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.dossierReference",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.copyDeadline",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "links",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "attachments",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "content",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR01",
+      "path": "commented",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "False"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.secondaryTenants[].tenantCode",
+      "present": 2,
+      "total": 10,
+      "coverage": 0.2,
+      "sample_value": "kabzg"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta.secondaryTenants[].publicationDate",
+      "present": 2,
+      "total": 10,
+      "coverage": 0.2,
+      "sample_value": "2026-09-17T00:00:00.000Z"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.id",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "b714a093-1676-45c9-bc33-28300f249a89"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.creationDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-15T13:29:35.289Z"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.updateDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-16T22:39:11.396Z"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.rubric",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.subRubric",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR02"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.language",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "de"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.id",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "e15a629a-a08d-11e8-aa11-0050569d3c43"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.displayName",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bundesamt für Justiz (BJ), Eidgenössisches Amt für das Handelsregister"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.street",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bundesrain"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.streetNumber",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "20"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.swissZipCode",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "3003"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.town",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bern"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.containsPostOfficeBox",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "False"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.postOfficeBox",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.municipalityId",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.registrationOffice.uid",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.publicationOriginator",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.publicationNumber",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR02-1006758471"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.publicationState",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "PUBLISHED"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.publicationDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-17T00:00:00.000Z"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.expirationDate",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.primaryTenantCode",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "shab"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.onBehalfOf",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.invoiceAddressId",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.legalRemedy",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Die Mutation der aufgeführten Rechtseinheit wurde im Handelsregister vorgenommen"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.cantons[]",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "ZH"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.secondaryTenants",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.repeatedPublications",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.customsStampImages",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.title.de",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Mutation Collabree AG, Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.title.en",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Change Collabree AG, Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.title.it",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Cambiamenti Collabree AG, Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.title.fr",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Mutation Collabree AG, Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.dossierReference",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.copyDeadline",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "links",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "attachments",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "content",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR02",
+      "path": "commented",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "False"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.secondaryTenants[].tenantCode",
+      "present": 2,
+      "total": 10,
+      "coverage": 0.2,
+      "sample_value": "kabzg"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta.secondaryTenants[].publicationDate",
+      "present": 2,
+      "total": 10,
+      "coverage": 0.2,
+      "sample_value": "2026-09-17T00:00:00.000Z"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.id",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "3f6085cf-3c8a-42f1-a7ad-a42b352701da"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.creationDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-15T13:31:47.218Z"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.updateDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-16T22:38:39.883Z"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.rubric",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.subRubric",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR03"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.language",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "de"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.id",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "e15a629a-a08d-11e8-aa11-0050569d3c43"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.displayName",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bundesamt für Justiz (BJ), Eidgenössisches Amt für das Handelsregister"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.street",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bundesrain"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.streetNumber",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "20"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.swissZipCode",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "3003"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.town",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Bern"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.containsPostOfficeBox",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "False"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.postOfficeBox",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.municipalityId",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.registrationOffice.uid",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.publicationOriginator",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.publicationNumber",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "HR03-1006758532"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.publicationState",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "PUBLISHED"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.publicationDate",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "2026-09-17T00:00:00.000Z"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.expirationDate",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.primaryTenantCode",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "shab"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.onBehalfOf",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.invoiceAddressId",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.legalRemedy",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.cantons[]",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "ZH"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.secondaryTenants",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.repeatedPublications",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.customsStampImages",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.title.de",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Löschung Malerbetrieb Steiner, Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.title.en",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Deletion Malerbetrieb Steiner, Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.title.it",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Cancellazione Malerbetrieb Steiner, Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.title.fr",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "Annulation Malerbetrieb Steiner, Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.dossierReference",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "meta.copyDeadline",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "links",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "attachments",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "content",
+      "present": 0,
+      "total": 10,
+      "coverage": 0.0,
+      "sample_value": ""
+    },
+    {
+      "scope": "HR03",
+      "path": "commented",
+      "present": 10,
+      "total": 10,
+      "coverage": 1.0,
+      "sample_value": "False"
+    }
+  ],
+  "content_coverage": [
+    {
+      "scope": "HR01",
+      "path": "meta/id",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "0c65a54b-7361-491f-890d-82ab8272d5a5"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/rubric",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/subRubric",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR01"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/language",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "de"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/registrationOffice/id",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "e15a629a-a08d-11e8-aa11-0050569d3c43"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/registrationOffice/displayName",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bundesamt für Justiz (BJ), Eidgenössisches Amt für das Handelsregister"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/registrationOffice/street",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bundesrain"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/registrationOffice/streetNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "20"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/registrationOffice/swissZipCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "3003"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/registrationOffice/town",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bern"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/registrationOffice/containsPostOfficeBox",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/publicationNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR01-1006759110"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/publicationState",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "PUBLISHED"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/publicationDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-09-17"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/primaryTenantCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "shab"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/legalRemedy",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Die aufgeführte Rechtseinheit wurde ins Handelsregister aufgenommen und ist rech"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/cantons",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "AG"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/title/de",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Neueintragung Nothelfer Star Campos García, Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/title/en",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "New entries Nothelfer Star Campos García, Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/title/it",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Nuove registrazioni Nothelfer Star Campos García, Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/title/fr",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Nouvelles entrées Nothelfer Star Campos García, Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/testImport",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/journalNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "13128"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/journalDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-09-14"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/publicationText",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Nothelfer Star Campos García, in Wettingen, CHE-306.462.688, Güterstrasse 12, 54"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/name",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Nothelfer Star Campos García"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/uid",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CHE-306.462.688"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/uidOrganisationId",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "306462688"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/uidOrganisationIdCategorie",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CHE"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/code13",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CH40016147828"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/seat",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/legalForm",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "0101"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/noAddress",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/address/street",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Güterstrasse"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/address/houseNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "12"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/address/swissZipCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "5430"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/company/address/town",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Wettingen"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/purpose",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Unterrichtung von Erwachsenen und Kindern sowie Erbringung von Unterrichtsdienst"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/revision/optingOut",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/transaction/registration",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "true"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/senderOffice/officeName",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Handelsregisteramt des Kantons Aargau"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/secondaryTenants/tenantCode",
+      "present": 1,
+      "total": 3,
+      "coverage": 0.333,
+      "sample_value": "kabzg"
+    },
+    {
+      "scope": "HR01",
+      "path": "meta/secondaryTenants/publicationDate",
+      "present": 1,
+      "total": 3,
+      "coverage": 0.333,
+      "sample_value": "2026-09-17"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/capital/nominal",
+      "present": 1,
+      "total": 3,
+      "coverage": 0.333,
+      "sample_value": "100000.00"
+    },
+    {
+      "scope": "HR01",
+      "path": "content/commonsNew/capital/paid",
+      "present": 1,
+      "total": 3,
+      "coverage": 0.333,
+      "sample_value": "100000.00"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/id",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "b714a093-1676-45c9-bc33-28300f249a89"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/rubric",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/subRubric",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR02"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/language",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "de"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/registrationOffice/id",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "e15a629a-a08d-11e8-aa11-0050569d3c43"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/registrationOffice/displayName",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bundesamt für Justiz (BJ), Eidgenössisches Amt für das Handelsregister"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/registrationOffice/street",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bundesrain"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/registrationOffice/streetNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "20"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/registrationOffice/swissZipCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "3003"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/registrationOffice/town",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bern"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/registrationOffice/containsPostOfficeBox",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/publicationNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR02-1006758471"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/publicationState",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "PUBLISHED"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/publicationDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-09-17"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/primaryTenantCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "shab"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/legalRemedy",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Die Mutation der aufgeführten Rechtseinheit wurde im Handelsregister vorgenommen"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/cantons",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "ZH"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/title/de",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Mutation Collabree AG, Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/title/en",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Change Collabree AG, Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/title/it",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Cambiamenti Collabree AG, Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "meta/title/fr",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Mutation Collabree AG, Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/testImport",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/journalNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "43195"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/journalDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-09-14"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/publicationText",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Collabree AG, in Zürich, CHE-287.738.801, Aktiengesellschaft (SHAB Nr. 78 vom 24"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/name",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Collabree AG"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/translations",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "(Collabree SA) (Collabree Ltd)"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/uid",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CHE-287.738.801"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/uidOrganisationId",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "287738801"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/uidOrganisationIdCategorie",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CHE"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/code13",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CH02030488662"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/seat",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/legalForm",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "0106"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/noAddress",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/address/addressLine1",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "c/o Evoleen AG"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/address/street",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Dreikönigstrasse"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/address/houseNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "34"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/address/swissZipCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "8002"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/company/address/town",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/purpose",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Die Gesellschaft bezweckt die Entwicklung und Vermarktung von digitalen Gesundhe"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/capital/nominal",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "151333.00"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/capital/paid",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "151333.00"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/revision/optingOut",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/revision/revisionCompany/name",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "Lienhard Audit AG"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/revision/revisionCompany/country",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "CH"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/revision/revisionCompany/uid",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "CHE139583547"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/revision/revisionCompany/uidOrganisationId",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "139583547"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsNew/revision/revisionCompany/uidOrganisationIdCategorie",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "CHE"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/name",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Collabree AG"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/translations",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "(Collabree SA) (Collabree Ltd)"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/uid",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CHE-287.738.801"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/uidOrganisationId",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "287738801"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/uidOrganisationIdCategorie",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CHE"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/code13",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CH02030488662"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/seat",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/legalForm",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "0106"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/noAddress",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/address/addressLine1",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "c/o Evoleen AG"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/address/street",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Dreikönigstrasse"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/address/houseNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "34"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/address/swissZipCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "8002"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/company/address/town",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Zürich"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/purpose",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Die Gesellschaft bezweckt die Entwicklung und Vermarktung von digitalen Gesundhe"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/capital/nominal",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "151333.00"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/capital/paid",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "151333.00"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/commonsActual/revision/optingOut",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/lastFosc/lastFoscDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-04-24"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/lastFosc/lastFoscNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "78"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/lastFosc/lastFoscSequence",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "1006633600"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/others",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "true"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/nameChanged",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/uidChanged",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/legalStatusChanged",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/seatChanged",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/addressChanged",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/purposeChanged",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/capitalChanged/nominal",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/capitalChanged/paid",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/capitalChanged/other",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/bankruptcy/dissolution",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/bankruptcy/dismissal",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/bankruptcy/revocation",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/bankruptcy/cancellation",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/bankruptcy/summary",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/liquidation/dissolution/nonExceptional",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/liquidation/dissolution/or731b",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/liquidation/dissolution/hregv153b",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/liquidation/revocation",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/suspension",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/reentry",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/transaction/update/changements/statusChanged/reapplication",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR02",
+      "path": "content/senderOffice/officeName",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Handelsregisteramt des Kantons Zürich"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/id",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "3f6085cf-3c8a-42f1-a7ad-a42b352701da"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/rubric",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/subRubric",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR03"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/language",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "de"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/registrationOffice/id",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "e15a629a-a08d-11e8-aa11-0050569d3c43"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/registrationOffice/displayName",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bundesamt für Justiz (BJ), Eidgenössisches Amt für das Handelsregister"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/registrationOffice/street",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bundesrain"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/registrationOffice/streetNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "20"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/registrationOffice/swissZipCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "3003"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/registrationOffice/town",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bern"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/registrationOffice/containsPostOfficeBox",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/publicationNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "HR03-1006758532"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/publicationState",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "PUBLISHED"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/publicationDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-09-17"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/primaryTenantCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "shab"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/cantons",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "ZH"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/title/de",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Löschung Malerbetrieb Steiner, Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/title/en",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Deletion Malerbetrieb Steiner, Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/title/it",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Cancellazione Malerbetrieb Steiner, Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "meta/title/fr",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Annulation Malerbetrieb Steiner, Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/testImport",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/journalNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "43257"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/journalDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-09-14"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/publicationText",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Malerbetrieb Steiner, in Winterthur, CHE-167.447.145, Einzelunternehmen (SHAB Nr"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/name",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Malerbetrieb Steiner"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/uid",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CHE-167.447.145"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/uidOrganisationId",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "167447145"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/uidOrganisationIdCategorie",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CHE"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/code13",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "CH02010784881"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/seat",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/legalForm",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "0101"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/noAddress",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/address/street",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Bürglistrasse"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/address/houseNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "57"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/address/swissZipCode",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "8400"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/address/town",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Winterthur"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/purpose",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Malerbetrieb Steiner ist ein Unternehmen, dass im Bereich jeglicher Malarbeiten,"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/checkOptingOut",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "false"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/lastFosc/lastFoscDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-06-30"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/lastFosc/lastFoscNumber",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "123"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/lastFosc/lastFoscSequence",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "1006691918"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/transaction/delete/deletionDate",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "2026-09-14"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/senderOffice/officeName",
+      "present": 3,
+      "total": 3,
+      "coverage": 1.0,
+      "sample_value": "Handelsregisteramt des Kantons Zürich"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/company/address/addressLine1",
+      "present": 1,
+      "total": 3,
+      "coverage": 0.333,
+      "sample_value": "c/o Laura López Miñano"
+    },
+    {
+      "scope": "HR03",
+      "path": "content/commonsActual/capital/nominal",
+      "present": 2,
+      "total": 3,
+      "coverage": 0.667,
+      "sample_value": "20000.00"
+    }
+  ],
+  "schema_elements": [
+    {
+      "sub_rubric": "HR01",
+      "path": "testImport",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Indicates a Test-Publication"
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "journalNumber",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "journalDate",
+      "type": "xs:date",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "publicationText",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/translations",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Name of foreign firm. Please enter before the language given in square brackets. [DE], [FR] etc."
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/code13",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/seat",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "This shows the official number (as per the SFSO register) of the commune where the undertaking is legally domiciled."
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/additionalSeat",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Only companies with two headquarters. National bank, UBS, Nestlé"
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/legalForm",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Enter the legal form and corresponding number."
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/noAddress",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address/addressLine1",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address/addressLine2",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address/street",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address/houseNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address/postOfficeBoxNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address/postOfficeBoxText",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address/swissZipCode",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/address/town",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress/addressLine1",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress/addressLine2",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress/street",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress/houseNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress/postOfficeBoxNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress/postOfficeBoxText",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress/swissZipCode",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/company/liqAddress/town",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/purpose",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "In future, carriage returns and line feeds can be inserted here"
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/capital",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/capital/nominal",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/capital/paid",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/revision",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/revision/optingOut",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Audit opt-out"
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/revision/revisionCompany",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/revision/revisionCompany/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "If the head office of the organisation is not in Switzerland, you can skip the UID fields."
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/revision/revisionCompany/country",
+      "type": "xs:anyType",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/revision/revisionCompany/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/revision/revisionCompany/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/revision/revisionCompany/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/headOffice",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/headOffice/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "If the head office of the organisation is not in Switzerland, you can skip the UID fields."
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/headOffice/country",
+      "type": "xs:anyType",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/headOffice/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/headOffice/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "commonsNew/headOffice/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "transaction",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "transaction/registration",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Option indicating a new entry (redundant with publication type: HR01 is ALWAYS a new entry). Previous code: 01"
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "senderOffice",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR01",
+      "path": "senderOffice/officeName",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Can appear either in the meta data (onBehalfOf) or as it is."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "testImport",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "journalNumber",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "journalDate",
+      "type": "xs:date",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "publicationText",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/translations",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Name of foreign firm. Please enter before the language given in square brackets. [DE], [FR] etc."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/code13",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/seat",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "This shows the official number (as per the SFSO register) of the commune where the undertaking is legally domiciled."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/additionalSeat",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Only companies with two headquarters. National bank, UBS, Nestlé"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/legalForm",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Enter the legal form and corresponding number."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/noAddress",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address/addressLine1",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address/addressLine2",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address/street",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address/houseNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address/postOfficeBoxNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address/postOfficeBoxText",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address/swissZipCode",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/address/town",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress/addressLine1",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress/addressLine2",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress/street",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress/houseNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress/postOfficeBoxNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress/postOfficeBoxText",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress/swissZipCode",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/company/liqAddress/town",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/purpose",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "In future, carriage returns and line feeds can be inserted here"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/capital",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/capital/nominal",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/capital/paid",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/revision",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/revision/optingOut",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Audit opt-out"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/revision/revisionCompany",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/revision/revisionCompany/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "If the head office of the organisation is not in Switzerland, you can skip the UID fields."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/revision/revisionCompany/country",
+      "type": "xs:anyType",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/revision/revisionCompany/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/revision/revisionCompany/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/revision/revisionCompany/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/headOffice",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/headOffice/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "If the head office of the organisation is not in Switzerland, you can skip the UID fields."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/headOffice/country",
+      "type": "xs:anyType",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/headOffice/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/headOffice/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsNew/headOffice/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/translations",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Name of foreign firm. Please enter before the language given in square brackets. [DE], [FR] etc."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/code13",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/seat",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "This shows the official number (as per the SFSO register) of the commune where the undertaking is legally domiciled."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/additionalSeat",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Only companies with two headquarters. National bank, UBS, Nestlé"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/legalForm",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Enter the legal form and corresponding number."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/noAddress",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address/addressLine1",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address/addressLine2",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address/street",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address/houseNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address/postOfficeBoxNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address/postOfficeBoxText",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address/swissZipCode",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/address/town",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress/addressLine1",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress/addressLine2",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress/street",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress/houseNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress/postOfficeBoxNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress/postOfficeBoxText",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress/swissZipCode",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/company/liqAddress/town",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/purpose",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Purpose to date"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/capital",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/capital/nominal",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/capital/paid",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/revision",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/revision/optingOut",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Audit opt-out"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/revision/revisionCompany",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/revision/revisionCompany/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "If the head office of the organisation is not in Switzerland, you can skip the UID fields."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/revision/revisionCompany/country",
+      "type": "xs:anyType",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/revision/revisionCompany/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/revision/revisionCompany/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/revision/revisionCompany/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/headOffice",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/headOffice/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "If the head office of the organisation is not in Switzerland, you can skip the UID fields."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/headOffice/country",
+      "type": "xs:anyType",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/headOffice/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/headOffice/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "commonsActual/headOffice/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "lastFosc",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "lastFosc/lastFoscDate",
+      "type": "xs:date",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "lastFosc/lastFoscNumber",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "SOGC numbers were in use until 28 May 2018. Publications which appear in the SOGC after this date no longer feature and SOGC number."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "lastFosc/lastFoscSequence",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/others",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "This option implies any changement other than the subsequent listed changement options. This might include typos, changements in prenames or changements in signature authorisations. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/nameChanged",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Changement of company name or changement of translation of company name. Previos code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/uidChanged",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Changement in UID number. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/legalStatusChanged",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Changement of legal form. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/seatChanged",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "New seat (e.g. seat changed to other political municipality). Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/addressChanged",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Changement in Address of residence. Might be in the same political municipality. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/purposeChanged",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Changement in purpose. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/capitalChanged",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/capitalChanged/nominal",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Capital changed nominal. Previous code: 1. ATTENTION: The option indicating the combination of capital changements \"nominal\" and \"paid\" (previous codes: 3) is not available anymore. If this combination should be evaluate"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/capitalChanged/paid",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Capital changed paid. Previous code: 2. ATTENTION: The option indicating the combination of capital changements \"nominal\" and \"paid\" (previous codes: 3) is not available anymore. If this combination should be evaluated/d"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/capitalChanged/other",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Capital changed for other reasons (generally \"division into shares\"). Previous code: 4. ATTENTION: The option indicating combinations of capital changements (previous codes: 5, 6,7) are not available anymore. REASON: The"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/bankruptcy",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/bankruptcy/dissolution",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Dissolution due to bankruptcy. Previous code: 13"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/bankruptcy/dismissal",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Dismissal of bankruptcy. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/bankruptcy/revocation",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Revocation of bankruptcy. Previous code: 30"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/bankruptcy/cancellation",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Cancellation of bankruptcy. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/bankruptcy/summary",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Summary procedure. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/liquidation",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/liquidation/dissolution",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/liquidation/dissolution/nonExceptional",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Dissolution due to Liquidation with no exceptional reason. Previous code: Not available. ATTENTION: The previous code 12 (Dissolution due to Liquidation) is not provided anymore, the present option indicates a \"Dissoluti"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/liquidation/dissolution/or731b",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Dissolution due to Liquidation according to OR 731b. Previous code: 15"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/liquidation/dissolution/hregv153b",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Dissolution due to Liquidation according to HRegV 153b. Previous code: Not available."
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/liquidation/revocation",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Revocation of Liquidation. Previous code: 30"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/suspension",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Suspension of bankruptcy OR Liquidation. Previous code: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/reentry",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Reentry of company. Previous code: 40"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "transaction/update/changements/statusChanged/reapplication",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Reapplication of company. Previous company: Not available"
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "senderOffice",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR02",
+      "path": "senderOffice/officeName",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Can appear either in the meta data (onBehalfOf) or as it is."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "testImport",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "journalNumber",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "journalDate",
+      "type": "xs:date",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "publicationText",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Please provide text without XML tags."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/translations",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Name of foreign firm. Please enter before the language given in square brackets. [DE], [FR] etc."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/code13",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/seat",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "This shows the official number (as per the SFSO register) of the commune where the undertaking is legally domiciled."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/additionalSeat",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Only companies with two headquarters. National bank, UBS, Nestlé"
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/legalForm",
+      "type": "complex",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Enter the legal form and corresponding number."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/noAddress",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address/addressLine1",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address/addressLine2",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address/street",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address/houseNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address/postOfficeBoxNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address/postOfficeBoxText",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address/swissZipCode",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/address/town",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress/addressLine1",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress/addressLine2",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress/street",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress/houseNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress/postOfficeBoxNumber",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress/postOfficeBoxText",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress/swissZipCode",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/company/liqAddress/town",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/purpose",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Purpose to date"
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/capital",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/capital/nominal",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/capital/paid",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/checkOptingOut",
+      "type": "xs:boolean",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/revision",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/revision/revisionCompany",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/revision/revisionCompany/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "If the head office of the organisation is not in Switzerland, you can skip the UID fields."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/revision/revisionCompany/country",
+      "type": "xs:anyType",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/revision/revisionCompany/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/revision/revisionCompany/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/revision/revisionCompany/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/headOffice",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/headOffice/name",
+      "type": "xs:string",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "If the head office of the organisation is not in Switzerland, you can skip the UID fields."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/headOffice/country",
+      "type": "xs:anyType",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/headOffice/uid",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/headOffice/uidOrganisationId",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "commonsActual/headOffice/uidOrganisationIdCategorie",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "lastFosc",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "lastFosc/lastFoscDate",
+      "type": "xs:date",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "lastFosc/lastFoscNumber",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "SOGC numbers were in use until 28 May 2018. Publications which appear in the SOGC after this date no longer feature and SOGC number."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "lastFosc/lastFoscSequence",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "transaction",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "transaction/delete",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "transaction/delete/deletionDate",
+      "type": "xs:date",
+      "min_occurs": "1",
+      "max_occurs": "1",
+      "documentation": "Date of dissolution. Since a dissolutions is involved (always HRO3), the date of dissolution is mandatory. Former code: 20. NOTE: The \"Dissolution following merger\" option (previous code: 11) is no longer available."
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "senderOffice",
+      "type": "complex",
+      "min_occurs": "0",
+      "max_occurs": "unbounded",
+      "documentation": ""
+    },
+    {
+      "sub_rubric": "HR03",
+      "path": "senderOffice/officeName",
+      "type": "xs:string",
+      "min_occurs": "0",
+      "max_occurs": "1",
+      "documentation": "Can appear either in the meta data (onBehalfOf) or as it is."
+    }
+  ],
+  "sample_ids": {
+    "HR01": [
+      "0c65a54b-7361-491f-890d-82ab8272d5a5",
+      "c9b719b3-60ab-43d7-82c9-751c082220be",
+      "6bb624b5-bf02-434e-b9ca-ae3d95ac0bec"
+    ],
+    "HR02": [
+      "b714a093-1676-45c9-bc33-28300f249a89",
+      "35f8c78e-eca0-489f-8824-17f97711a2a6",
+      "c81bd241-3ffc-46de-b9c5-f8622349a009"
+    ],
+    "HR03": [
+      "3f6085cf-3c8a-42f1-a7ad-a42b352701da",
+      "b3ebe80d-4086-4a15-9964-e647473961c8",
+      "d88767a9-0a61-48e9-8415-3f0bacd57db3"
+    ]
+  },
+  "requests": [
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR01&cantons=ZH&cantons=AG&cantons=ZG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=10&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR01&cantons=ZH&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR01&cantons=AG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR01&cantons=ZG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications/0c65a54b-7361-491f-890d-82ab8272d5a5/xml",
+    "GET /publications/c9b719b3-60ab-43d7-82c9-751c082220be/xml",
+    "GET /publications/6bb624b5-bf02-434e-b9ca-ae3d95ac0bec/xml",
+    "GET /schemas/shab/1.26/HR01-export.xsd",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR02&cantons=ZH&cantons=AG&cantons=ZG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=10&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR02&cantons=ZH&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR02&cantons=AG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR02&cantons=ZG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications/b714a093-1676-45c9-bc33-28300f249a89/xml",
+    "GET /publications/35f8c78e-eca0-489f-8824-17f97711a2a6/xml",
+    "GET /publications/c81bd241-3ffc-46de-b9c5-f8622349a009/xml",
+    "GET /schemas/shab/1.26/HR02-export.xsd",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR03&cantons=ZH&cantons=AG&cantons=ZG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=10&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR03&cantons=ZH&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR03&cantons=AG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications?publicationStates=PUBLISHED&subRubrics=HR03&cantons=ZG&publicationDate.start=2026-06-19&publicationDate.end=2026-09-17&pageRequest.size=1&pageRequest.page=0&pageRequest.sortOrders=column%3APUBLICATION_DATE%7Cdirection%3ADESC",
+    "GET /publications/3f6085cf-3c8a-42f1-a7ad-a42b352701da/xml",
+    "GET /publications/b3ebe80d-4086-4a15-9964-e647473961c8/xml",
+    "GET /publications/d88767a9-0a61-48e9-8415-3f0bacd57db3/xml",
+    "GET /schemas/shab/1.26/HR03-export.xsd"
+  ]
+}

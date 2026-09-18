@@ -12,6 +12,13 @@ from kmu_discovery.sources.base import (
     TokenBucket,
 )
 from kmu_discovery.sources.lindas import LindasClient, ZefixRecord, profile_from_record
+from kmu_discovery.sources.shab import (
+    MutationKind,
+    ShabClient,
+    ShabPublication,
+    SubRubric,
+    profile_from_publication,
+)
 from kmu_discovery.sources.zefix import (
     ZefixClient,
     ZefixCompany,
@@ -23,13 +30,17 @@ from kmu_discovery.sources.zefix import (
 __all__ = [
     "HttpTransport",
     "LindasClient",
+    "MutationKind",
     "RawCache",
     "RawRecord",
+    "ShabClient",
+    "ShabPublication",
     "SourceBadResponseError",
     "SourceError",
     "SourceRateLimitedError",
     "SourceTimeoutError",
     "SourceUnavailableError",
+    "SubRubric",
     "TokenBucket",
     "ZefixClient",
     "ZefixCompany",
@@ -37,5 +48,6 @@ __all__ = [
     "ZefixCredentialsError",
     "ZefixRecord",
     "profile_from_company",
+    "profile_from_publication",
     "profile_from_record",
 ]

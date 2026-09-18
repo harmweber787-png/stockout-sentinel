@@ -196,14 +196,22 @@ class RawCache:
         return self._directory / source.value / f"{key}.json"
 
     def get(
-        self, source: SourceType, key: str, max_age: timedelta | None = None
+        self,
+        source: SourceType,
+        key: str,
+        max_age: timedelta | None = None,
+        now: datetime | None = None,
     ) -> RawRecord | None:
-        """Liefert den Datensatz, wenn vorhanden und nicht zu alt."""
+        """Liefert den Datensatz, wenn vorhanden und nicht zu alt.
+
+        ``now`` muss dieselbe Uhr sein, die ``retrieved_at`` gestempelt hat -
+        sonst vergleicht die Frischepruefung zwei verschiedene Zeitachsen.
+        """
         path = self._path(source, key)
         if not path.exists():
             return None
         record = RawRecord.model_validate_json(path.read_text(encoding="utf-8"))
-        if max_age is not None and record.age() > max_age:
+        if max_age is not None and record.age(now) > max_age:
             return None
         return record
 
@@ -354,7 +362,7 @@ class HttpTransport:
             raise SourceBadResponseError(self._source, url, 0, "keine http(s)-URL")
         key = request_key(method, url, body)
         if self._cache is not None:
-            cached = self._cache.get(self._source, key, max_age)
+            cached = self._cache.get(self._source, key, max_age, self._now())
             if cached is not None:
                 self.cache_hits += 1
                 return cached

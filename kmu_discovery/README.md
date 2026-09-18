@@ -6,7 +6,7 @@ Schmerz von blossem Schmerz.
 
 Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 
-## Stand: Modul 2 – Register-Clients auf live erhobenen Feldtabellen
+## Stand: Modul 2 – Register- und Amtsblatt-Quellen auf live erhobenen Feldtabellen
 
 | Baustein | Ort | Status |
 |---|---|---|
@@ -22,7 +22,9 @@ Dieses Paket ist unabhängig vom Stockout-Sentinel-Service unter `src/`.
 | Zefix-Felderhebung (Messinstrument) | `scripts/probe_zefix.py`, `docs/zefix_feldtabelle.md` | fertig, Abdeckung wartet auf Zugangsdaten |
 | Zefix-Client (Public REST API) | `sources/zefix.py`, `docs/zefix_felder.md` | fertig, ungetestet gegen echte Antworten |
 | eCH-0097-Rechtsformtabelle (gemeinsam) | `sources/legal_forms.py` | fertig |
-| Weitere Quellen-Clients (SHAB, UID-BFS, Websites) | `sources/` | offen |
+| SHAB-Felderhebung (Messinstrument) | `scripts/probe_shab.py`, `docs/shab_feldtabelle.md` | fertig, live erhoben 2026-09-17 |
+| SHAB-Client (Handelsregister-Mutationen) | `sources/shab.py` | fertig |
+| Weitere Quellen-Clients (UID-BFS, Websites) | `sources/` | offen |
 | LLM-Extraktion mit Structured Outputs | `extraction/` | offen |
 | Scoring und Cluster-Report | `scoring/`, `output/` | offen |
 
@@ -295,6 +297,55 @@ Listen mit `RESULTLIST_TO_LARGE` ab); der Client kürzt auf `max_results` und
 stellt nur eng gefasste Suchen. Zugangsdaten gehen ausschliesslich in den
 `Authorization`-Header, nie in den Rohdaten-Cache. Die 38 Tests des Clients
 und die 8 Tests des Erhebungsskripts laufen ohne Netz.
+
+## Modul 2c: SHAB-Client – Kontaktanlässe
+
+`sources/shab.py` liest Handelsregister-Mutationen über die **offene REST-API
+des Amtsblattportals** (`https://amtsblattportal.ch/api/v1`). Anders als
+LINDAS und Zefix liefert diese Quelle keine Stammdaten, sondern **Anlässe**:
+ein Betrieb, der gerade umgezogen ist oder die Geschäftsführung gewechselt
+hat, ordnet seine Abläufe ohnehin neu. Zugangsdaten braucht es keine.
+
+Mengengerüst der Zielkantone (letzte 90 Tage, Stand 2026-09-17):
+
+| Unterrubrik | ZH | AG | ZG | zusammen |
+|---|---:|---:|---:|---:|
+| HR01 Neueintragung | 2438 | 875 | 864 | 4177 |
+| HR02 Mutation | 10428 | 2909 | 4764 | 18101 |
+| HR03 Löschung | 1801 | 591 | 509 | 2901 |
+
+Was die Meldung geändert hat, steht **strukturiert** in
+`transaction/update/changements` – eine Adressänderung ist also ohne
+Textauswertung erkennbar. `MutationKind` bildet je ein Flag ab; `CONTACT_KINDS`
+hält fest, welche Arten ein Kontaktanlass sind. Löschung und Statusänderung
+(Konkurs, Liquidation) gehören bewusst nicht dazu.
+
+Zwei ehrliche Einschränkungen, beide aus der Erhebung und im Code vermerkt:
+
+* **Zeichnungsberechtigte sind nicht strukturiert.** Die API kennt kein
+  Personenelement; sie stehen nur im Freitext `publicationText`.
+  `ShabPublication.person_change_quote` findet sie über feste Marker des
+  amtlichen Texts und liefert den Belegsatz – deterministisch und zitierbar,
+  aber eine Textheuristik.
+* **`others` ist ein Sammeltopf.** Laut Schema deckt das Flag auch Tippfehler
+  und Vornamensänderungen ab. Die Mutationsart heisst deshalb
+  `PERSONEN_ODER_SONSTIGES` und nicht "Personen".
+
+```python
+from kmu_discovery.sources import ShabClient, SubRubric
+
+client = ShabClient.build(cache_dir=Path(".cache/rohdaten"))
+client.count_publications(SubRubric.MUTATION, days=90)        # 18101
+for profile, meldung in client.iter_profiles(days=90):         # nur Kontaktanlässe
+    print(profile.name, [k.value for k in meldung.kinds()], meldung.person_change_quote)
+```
+
+Die Trefferliste enthält laut API-Doku keinen Inhalt, deshalb folgt je Treffer
+ein Einzelabruf; `max_pages` deckelt die Last. Jede übernommene Angabe trägt
+einen `Evidence`-Beleg mit der Portal-Detailseite als Quell-URL. Der
+Publikationstext wird **nicht** als Dokument angehängt – er enthält
+Personendaten und dient nur als gekürztes Zitat. Die 53 Tests des Clients und
+die 15 des Erhebungsskripts laufen ohne Netz.
 
 ## Offene Verifikationsschulden
 
