@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Iterable, Sequence
+from typing import Callable, Iterable, Sequence, TypeVar
 
 from src.adapters.statistical_forecaster import StatisticalForecaster
 from src.adapters.timesfm_forecaster import TimesFMForecaster
@@ -40,6 +40,7 @@ from src.domain.timeseries import baue_serie
 from src.ports.forecasting import (
     ConsumptionSeries,
     DemandForecast,
+    ForecastPfad,
     ForecastPort,
     ForecastUnavailable,
 )
@@ -53,6 +54,9 @@ __all__ = [
 ]
 
 _LOG = logging.getLogger(__name__)
+
+#: Rueckgabetyp eines Kettendurchlaufs (Einzelprognose oder Pfad).
+_T = TypeVar("_T")
 
 
 class PrognoseFehlgeschlagen(ForecastUnavailable):
@@ -134,10 +138,7 @@ class DispositionEngine:
             ForecastUnavailable: Wenn kein Adapter der Kette eine Prognose
                 liefern konnte (im erzwungenen Modus: wenn TimesFM scheitert).
         """
-        serie = baue_serie(
-            ((satz.datum, satz.menge) for satz in artikel.historie),
-            standard_periodenlaenge=self.config.standard_periodenlaenge_tage,
-        )
+        serie = self.baue_reihe(artikel)
         prognose = self._prognostiziere(serie)
 
         kennzahlen = berechne_kennzahlen(
@@ -148,6 +149,33 @@ class DispositionEngine:
             mindestbestellmenge=artikel.mindestbestellmenge or 0.0,
         )
         return self._zu_ergebnis(artikel, kennzahlen, prognose)
+
+    def baue_reihe(self, artikel: SKUInput) -> ConsumptionSeries:
+        """Normalisiert die Historie eines Artikels zur Verbrauchsreihe."""
+        return baue_serie(
+            ((satz.datum, satz.menge) for satz in artikel.historie),
+            standard_periodenlaenge=self.config.standard_periodenlaenge_tage,
+        )
+
+    def prognose_pfad(self, artikel: SKUInput, perioden: int) -> ForecastPfad:
+        """Liefert einen Mehrschritt-Prognosepfad zur Darstellung.
+
+        Dient ausschliesslich der Visualisierung - die Dispositionszahlen
+        stammen unveraendert aus :meth:`analysiere`. Die Regeln des
+        Pflichtmodus gelten gleichermassen: scheitert TimesFM, wird nicht
+        auf ein anderes Verfahren ausgewichen.
+
+        Raises:
+            ForecastUnavailable: Wenn kein Adapter der Kette einen Pfad
+                liefern konnte.
+            ValueError: Bei einem Horizont kleiner als 1 Periode.
+        """
+        if perioden < 1:
+            raise ValueError("Der Prognosehorizont muss mindestens 1 Periode betragen.")
+        serie = self.baue_reihe(artikel)
+        return self._ueber_kette(
+            lambda adapter, _position: adapter.prognose_pfad(serie, perioden)
+        )
 
     def analysiere_batch(self, artikel: Iterable[SKUInput]) -> list[AnalysisResult]:
         """Analysiert viele Artikel und liefert die sortierte Prioritaetenliste.
@@ -179,11 +207,36 @@ class DispositionEngine:
         Im erzwungenen Modus besteht die Kette nur aus TimesFM; ein Fehler
         wird unveraendert weitergereicht.
         """
+        def mit_adapter(adapter: ForecastPort, position: int) -> DemandForecast:
+            prognose = self._ergaenze_korridor(adapter.prognose(serie), serie)
+            if position == 0:
+                return prognose
+            return DemandForecast(
+                monatsabsatz_p50=prognose.monatsabsatz_p50,
+                monatsabsatz_p90=prognose.monatsabsatz_p90,
+                modell=prognose.modell,
+                fallback=True,
+                monatsabsatz_p10=prognose.monatsabsatz_p10,
+            )
+
+        return self._ueber_kette(mit_adapter)
+
+    def _ueber_kette(self, arbeit: Callable[[ForecastPort, int], _T]) -> _T:
+        """Laeuft die Prognosekette ab und liefert das erste Ergebnis.
+
+        Im erzwungenen Modus besteht die Kette nur aus TimesFM; ein Fehler
+        wird unveraendert weitergereicht, statt ihn durch einen Rueckfall zu
+        ueberdecken.
+
+        Args:
+            arbeit: Aufruf, der Adapter und dessen Position in der Kette
+                entgegennimmt und das Ergebnis liefert.
+        """
         letzter_fehler: str | None = None
 
         for position, adapter in enumerate(self.prognose_kette):
             try:
-                prognose = adapter.prognose(serie)
+                return arbeit(adapter, position)
             except ForecastUnavailable as exc:
                 if self.config.force_timesfm:
                     # Kein Ausweichen: TimesFM ist verbindlich.
@@ -198,16 +251,6 @@ class DispositionEngine:
                 letzter_fehler = f"{type(exc).__name__}: {exc}"
                 _LOG.warning("Prognose-Adapter '%s' fehlgeschlagen: %s", adapter.name, exc)
                 continue
-
-            prognose = self._ergaenze_korridor(prognose, serie)
-            if position > 0:
-                prognose = DemandForecast(
-                    monatsabsatz_p50=prognose.monatsabsatz_p50,
-                    monatsabsatz_p90=prognose.monatsabsatz_p90,
-                    modell=prognose.modell,
-                    fallback=True,
-                )
-            return prognose
 
         raise PrognoseFehlgeschlagen(
             f"Kein Prognose-Adapter lieferte ein Ergebnis ({letzter_fehler})."
