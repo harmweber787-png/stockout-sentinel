@@ -21,6 +21,13 @@ python-multipart>=0.0.9
 timesfm>=3.0
 torch>=2.2
 
+# --- Weboberflaeche -------------------------------------------------------
+# Streamlit bringt Altair mit; fuer den Radar-Graphen wird deshalb keine
+# zusaetzliche Plot-Bibliothek benoetigt.
+# Mindestversion 1.50: davor kennen st.dataframe/st.altair_chart den
+# Parameter 'width' noch nicht (Vorgaenger use_container_width ist entfallen).
+streamlit>=1.50
+
 # --- Test / QA ------------------------------------------------------------
 pytest>=8.0
 # httpx wird vom FastAPI TestClient fuer die API-Integrationstests benoetigt.

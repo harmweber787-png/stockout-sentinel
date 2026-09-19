@@ -14,6 +14,7 @@ from typing import Protocol, runtime_checkable
 __all__ = [
     "ConsumptionSeries",
     "DemandForecast",
+    "ForecastPfad",
     "ForecastPort",
     "ForecastUnavailable",
 ]
@@ -71,18 +72,60 @@ class DemandForecast:
         monatsabsatz_p90: Monatsabsatz im 90 %-Quantil (Sicherheitskorridor).
         modell: Bezeichner des Adapters, der die Prognose erzeugt hat.
         fallback: ``True``, wenn nicht das primaere Modell verwendet wurde.
+        monatsabsatz_p10: Monatsabsatz im 10 %-Quantil. Fuer die Disposition
+            nicht erforderlich - der Meldebestand stuetzt sich auf P50/P90 -,
+            aber fuer die Darstellung des Unsicherheitskorridors. ``None``,
+            wenn das Modell kein unteres Quantil liefert.
     """
 
     monatsabsatz_p50: float
     monatsabsatz_p90: float
     modell: str
     fallback: bool = False
+    monatsabsatz_p10: float | None = None
 
     def __post_init__(self) -> None:
         if self.monatsabsatz_p50 < 0:
             raise ValueError("monatsabsatz_p50 darf nicht negativ sein.")
         if self.monatsabsatz_p90 < self.monatsabsatz_p50:
             raise ValueError("monatsabsatz_p90 darf nicht unter dem P50 liegen.")
+        if self.monatsabsatz_p10 is not None and self.monatsabsatz_p10 > self.monatsabsatz_p50:
+            raise ValueError("monatsabsatz_p10 darf nicht ueber dem P50 liegen.")
+
+
+@dataclass(frozen=True, slots=True)
+class ForecastPfad:
+    """Mehrschritt-Prognose in der Kadenz der Eingangsreihe.
+
+    Anders als :class:`DemandForecast` ist der Pfad nicht auf einen Monat
+    normiert, sondern nennt je kuenftiger Periode dieselbe Groesse wie die
+    Historie. Damit laesst er sich unmittelbar gegen die Vergangenheitswerte
+    zeichnen. Fuer die Dispositionsrechnung wird er nicht verwendet - die
+    stuetzt sich unveraendert auf :class:`DemandForecast`.
+
+    Attributes:
+        p10: Untere Korridorgrenze je Periode (10 %-Quantil).
+        p50: Erwartungswert je Periode (Median).
+        p90: Obere Korridorgrenze je Periode (90 %-Quantil).
+        periodenlaenge_tage: Kadenz der Perioden, uebernommen aus der Reihe.
+        modell: Bezeichner des erzeugenden Modells.
+    """
+
+    p10: tuple[float, ...]
+    p50: tuple[float, ...]
+    p90: tuple[float, ...]
+    periodenlaenge_tage: float
+    modell: str
+
+    def __post_init__(self) -> None:
+        if not (len(self.p10) == len(self.p50) == len(self.p90)):
+            raise ValueError("p10, p50 und p90 muessen gleich lang sein.")
+        if not self.p50:
+            raise ValueError("Der Prognosepfad darf nicht leer sein.")
+
+    @property
+    def laenge(self) -> int:
+        return len(self.p50)
 
 
 @runtime_checkable
@@ -97,6 +140,18 @@ class ForecastPort(Protocol):
 
     def prognose(self, serie: ConsumptionSeries) -> DemandForecast:
         """Erzeugt die auf 30 Tage normierte Prognose.
+
+        Raises:
+            ForecastUnavailable: Wenn dieser Adapter die Reihe nicht
+                verarbeiten kann.
+        """
+        ...
+
+    def prognose_pfad(self, serie: ConsumptionSeries, perioden: int) -> ForecastPfad:
+        """Erzeugt einen Mehrschritt-Pfad ueber ``perioden`` Zukunftsperioden.
+
+        Dient der Darstellung; die Disposition nutzt weiterhin
+        :meth:`prognose`.
 
         Raises:
             ForecastUnavailable: Wenn dieser Adapter die Reihe nicht

@@ -1,0 +1,11 @@
+# --- Swiss KMU Problem-Discovery-Engine :: Laufzeit ------------------------
+# Bewusst getrennt von requirements.txt: die Engine braucht weder torch noch
+# pandas, und der Dispositions-Service braucht kein PyYAML.
+pydantic>=2.7
+PyYAML>=6.0
+
+# --- Test / QA ------------------------------------------------------------
+pytest>=8.0
+mypy>=1.11
+types-PyYAML>=6.0
+ruff>=0.6
