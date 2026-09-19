@@ -531,3 +531,11 @@ kein nicht gegriffener Volume-Mount.
 Wer den Service dagegen ohne das Image betreibt (`uvicorn` direkt, ohne
 `MODEL_DIR`), holt das Checkpoint beim Start vom Hub und handelt sich die
 Netzabhängigkeit wieder ein.
+
+---
+
+## Weitere Projekte in diesem Repository
+
+* **[confident-style/](confident-style/)** – "Confident Style", eine mobile-first
+  Web-App (Next.js, TypeScript, Tailwind) für persönliche Kleidungs- und
+  Frisurenberatung aus zwei Fotos. Eigenständiges Projekt mit eigener README.
