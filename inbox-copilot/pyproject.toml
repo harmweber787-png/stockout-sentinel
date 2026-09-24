@@ -10,7 +10,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
 dependencies = [
-    "anthropic>=0.40",
+    # 1.x ist Pflicht: der LLM-Client nutzt output_config (Structured
+    # Outputs) und den extra_body-Weg fuer temperature. Getestet: 1.8.0.
+    "anthropic>=1.8,<2",
     "pydantic>=2.7",
     "pydantic-settings>=2.2",
     "google-api-python-client>=2.100",
@@ -39,9 +41,12 @@ include = ["inbox_copilot*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-addopts = "-q --strict-markers"
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
+# Live-Tests rufen die echte API auf (kosten Geld) und sind per addopts
+# abgewaehlt. Aufruf: pytest -m live
+markers = ["live: ruft die echte Anthropic-API auf"]
+addopts = "-q --strict-markers -m 'not live'"
 
 [tool.mypy]
 python_version = "3.11"

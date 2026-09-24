@@ -87,6 +87,7 @@ __all__ = [
     "apply_triage_gates",
     "render_html_body",
     "render_plain_body",
+    "temperatur_parameter",
 ]
 
 _LOG = logging.getLogger("inbox_copilot.pipeline")
@@ -194,6 +195,68 @@ def _strukturierte_ausgabe_verfuegbar() -> bool:
 _STRUCTURED_OUTPUT_VERFUEGBAR = _strukturierte_ausgabe_verfuegbar()
 
 
+# Anpassung an anthropic-SDK 1.x.
+# 1. ``messages.create`` kennt ``temperature`` dort nicht mehr als benannten
+#    Parameter - der Aufruf scheitert mit ``TypeError``, noch vor jedem
+#    Netzwerkzugriff. Der Parameter ist aus der SDK-Signatur entfernt, nicht
+#    aus der API: ``extra_body`` wird unveraendert in den Request-Body
+#    gemergt und ist damit der offizielle Ersatzweg.
+# 2. Structured Outputs lehnt ``minimum``/``maximum`` bei Zahlen mit HTTP 400
+#    ab ("For 'number' type, properties maximum, minimum are not supported").
+# Beides wird hier defensiv abgefangen; aeltere SDKs bleiben unberuehrt.
+def _sdk_kennt_temperature() -> bool:
+    import inspect
+
+    try:
+        from anthropic.resources.messages import AsyncMessages
+    except ImportError:  # pragma: no cover
+        return False
+    try:
+        return "temperature" in inspect.signature(AsyncMessages.create).parameters
+    except (TypeError, ValueError):  # pragma: no cover
+        return False
+
+
+_SDK_KENNT_TEMPERATURE = _sdk_kennt_temperature()
+
+_SCHEMA_ZAHLENGRENZEN = frozenset(
+    {"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum"}
+)
+
+
+def _ohne_zahlengrenzen(knoten: Any) -> Any:
+    """Entfernt von Structured Outputs nicht unterstuetzte Zahlengrenzen.
+
+    Die Grenzen bleiben im Pydantic-Modell bestehen und werden nach dem
+    Aufruf durch ``schema_model.model_validate`` weiterhin durchgesetzt -
+    entfernt wird nur die Kopie, die als Ausgabeformat an die API geht.
+    """
+    if isinstance(knoten, dict):
+        return {
+            schluessel: _ohne_zahlengrenzen(wert)
+            for schluessel, wert in knoten.items()
+            if schluessel not in _SCHEMA_ZAHLENGRENZEN
+        }
+    if isinstance(knoten, list):
+        return [_ohne_zahlengrenzen(eintrag) for eintrag in knoten]
+    return knoten
+
+
+def temperatur_parameter(model: str, temperature: float) -> dict[str, Any]:
+    """Traegt ``temperature`` so ein, wie das installierte SDK es annimmt.
+
+    Leeres Dict, wenn das Modell den Parameter nicht akzeptiert (Opus 4.7
+    und spaeter quittieren ihn mit HTTP 400, Sonnet 5 jeden Wert ausser dem
+    Standardwert). Sonst der benannte Parameter (SDK 0.x) oder der Umweg
+    ueber ``extra_body`` (SDK 1.x).
+    """
+    if not unterstuetzt_sampling_parameter(model):
+        return {}
+    if _SDK_KENNT_TEMPERATURE:
+        return {"temperature": temperature}
+    return {"extra_body": {"temperature": temperature}}
+
+
 class LLMClient:
     """Duenner, asynchroner Wrapper um ``AsyncAnthropic``."""
 
@@ -246,11 +309,13 @@ class LLMClient:
             "system": system,
             "messages": nachrichten,
         }
-        if unterstuetzt_sampling_parameter(model):
-            parameter["temperature"] = temperature
+        parameter.update(temperatur_parameter(model, temperature))
         if self._strukturiert:
             parameter["output_config"] = {
-                "format": {"type": "json_schema", "schema": schema}
+                "format": {
+                    "type": "json_schema",
+                    "schema": _ohne_zahlengrenzen(schema),
+                }
             }
         else:
             parameter["tools"] = [

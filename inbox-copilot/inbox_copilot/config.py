@@ -91,10 +91,16 @@ class Settings(BaseSettings):
     drafter_model: str = "claude-sonnet-5"
     triage_temperature: float = 0.0
     drafter_temperature: float = 0.2
-    triage_timeout_s: float = 3.5
-    drafter_timeout_s: float = 12.0
+    # Timeouts und Token-Limits nach dem Live-Lauf vom 23.09.2026 gesetzt
+    # (35 Nachrichten, macOS M1, Wohnanschluss). Gemessen: Stufe 1 4,4-6,1 s,
+    # Stufe 2 27-32 s inklusive einem Retry, 2'896 und 3'313 Output-Token je
+    # Entwurf. Die Reserve ueber dem Messwert faengt Lastspitzen ab; ein zu
+    # knappes drafter_max_tokens schneidet das JSON mitten im Feld ab und
+    # erzeugt DRAFT_INVALID_JSON, das auch der Retry nicht mehr rettet.
+    triage_timeout_s: float = 30.0
+    drafter_timeout_s: float = 120.0
     triage_max_tokens: int = 1024
-    drafter_max_tokens: int = 1500
+    drafter_max_tokens: int = 4000
 
     # --- Limits ----------------------------------------------------------
     triage_input_char_cap: int = 6000  # ~1'500 Tokens
