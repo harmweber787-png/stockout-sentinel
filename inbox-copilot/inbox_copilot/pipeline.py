@@ -387,7 +387,17 @@ def _token_verbrauch(antwort: Any) -> tuple[int, int]:
 
 
 def _rohtext(antwort: Any, *, strukturiert: bool) -> str:
-    """Extrahiert den JSON-Rohtext aus einer SDK-Antwort."""
+    """Extrahiert den JSON-Rohtext aus einer SDK-Antwort.
+
+    BEOBACHTUNG (Live-Lauf 23.09.2026): Der Drafter laeuft auf Sonnet 5, und
+    dort denkt das Modell standardmaessig vor - vor dem Textblock kommt ein
+    ``thinking``-Block. Die Schleife ueberspringt ihn, die Entwuerfe waren
+    korrekt. Er erklaert aber einen Teil der gemessenen 27-32 s und der rund
+    3'000 Output-Token je Entwurf. Bewusst unveraendert gelassen: wer die
+    Stufe beschleunigen will, setzt dort an (``output_config.effort`` oder
+    ``thinking``) - das ist eine eigene Aufgabe mit eigener Messung, kein
+    Nebeneffekt dieses Fixes.
+    """
     bloecke = getattr(antwort, "content", None) or []
     for block in bloecke:
         typ = getattr(block, "type", None)

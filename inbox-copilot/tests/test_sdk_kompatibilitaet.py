@@ -185,6 +185,112 @@ async def test_gesendetes_schema_ist_bereinigt() -> None:
 # ---------------------------------------------------------------------------
 
 
+#: Gemessen am 23.09.2026 auf macOS gegen die echte API (anthropic 1.8.0,
+#: Schema bereinigt, output_config aktiv). Die Tabelle belegt, warum
+#: ``temperatur_parameter`` nach Modell unterscheidet, statt pauschal zu
+#: senden: Haiku 4.5 nimmt den Wert ueber extra_body an, Sonnet 5 weist ihn
+#: mit HTTP 400 ab. Pauschales Senden haette jeden Entwurf zerlegt.
+#:
+#: (Rolle, gesendete Temperatur oder None, Erfolg erwartet)
+LIVE_TEMPERATUR_MATRIX: list[tuple[str, float | None, bool]] = [
+    ("triage", 0.0, True),
+    ("triage", None, True),
+    ("drafter", 0.2, False),
+    ("drafter", None, True),
+]
+
+#: Wortlaut der Ablehnung von Sonnet 5, Stand 23.09.2026:
+#: "`temperature` is deprecated for this model."
+#: Geprueft wird auf die beiden tragenden Woerter, damit eine umformulierte
+#: Meldung den Test nicht faellt - ein geaendertes *Verhalten* schon.
+ABLEHNUNG_KENNWORTE = ("temperature", "deprecated")
+
+
+async def _roher_aufruf(
+    settings: Settings, model: str, temperature: float | None
+) -> Any:
+    """Setzt den Request direkt ab, unter Umgehung der Modell-Weiche.
+
+    Nur so laesst sich auch der Fall pruefen, den der Produktivcode
+    absichtlich nie erzeugt: Sonnet 5 mit gesendeter Temperatur.
+    """
+    from anthropic import AsyncAnthropic
+
+    client = AsyncAnthropic(api_key=settings.anthropic_api_key.get_secret_value())
+    zusatz: dict[str, Any] = {}
+    if temperature is not None:
+        zusatz["extra_body"] = {"temperature": temperature}
+    return await client.messages.create(
+        model=model,
+        max_tokens=settings.triage_max_tokens,
+        system="Du gibst ausschliesslich ein JSON-Objekt nach dem Schema aus.",
+        messages=[{"role": "user", "content": '{"cleaned_body": "Guten Tag"}'}],
+        output_config={
+            "format": {
+                "type": "json_schema",
+                "schema": _ohne_zahlengrenzen(json_schema_fuer(TriageResultV1)),
+            }
+        },
+        **zusatz,
+    )
+
+
+@pytest.mark.live
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("rolle", "temperature", "erfolg"),
+    LIVE_TEMPERATUR_MATRIX,
+    ids=lambda wert: str(wert),
+)
+async def test_live_temperatur_matrix(
+    rolle: str, temperature: float | None, erfolg: bool
+) -> None:
+    """Belegt die vier gemessenen Kombinationen gegen die echte API."""
+    import anthropic
+
+    schluessel = os.environ.get("ANTHROPIC_API_KEY")
+    if not schluessel:
+        pytest.skip("ANTHROPIC_API_KEY nicht gesetzt")
+
+    settings = Settings(anthropic_api_key=SecretStr(schluessel))
+    model = settings.triage_model if rolle == "triage" else settings.drafter_model
+
+    if erfolg:
+        antwort = await _roher_aufruf(settings, model, temperature)
+        assert antwort.content, f"{model} lieferte keinen Inhalt"
+        return
+
+    with pytest.raises(anthropic.BadRequestError) as info:
+        await _roher_aufruf(settings, model, temperature)
+    meldung = str(info.value).lower()
+    for kennwort in ABLEHNUNG_KENNWORTE:
+        assert kennwort in meldung, (
+            f"{model} lehnt die Temperatur anders ab als am 23.09.2026 gemessen "
+            f"('{kennwort}' fehlt): {meldung}"
+        )
+
+
+@pytest.mark.live
+@pytest.mark.asyncio
+async def test_live_weiche_waehlt_nur_akzeptierte_kombinationen() -> None:
+    """Was ``temperatur_parameter`` sendet, muss die API auch annehmen."""
+    schluessel = os.environ.get("ANTHROPIC_API_KEY")
+    if not schluessel:
+        pytest.skip("ANTHROPIC_API_KEY nicht gesetzt")
+
+    settings = Settings(anthropic_api_key=SecretStr(schluessel))
+    for model, temperatur in (
+        (settings.triage_model, settings.triage_temperature),
+        (settings.drafter_model, settings.drafter_temperature),
+    ):
+        gewaehlt = temperatur_parameter(model, temperatur)
+        gesendet = gewaehlt.get(
+            "temperature", gewaehlt.get("extra_body", {}).get("temperature")
+        )
+        antwort = await _roher_aufruf(settings, model, gesendet)
+        assert antwort.content, f"{model} lehnte die gewaehlte Kombination ab"
+
+
 @pytest.mark.live
 @pytest.mark.asyncio
 async def test_live_minimalaufruf_gegen_echte_api() -> None:
