@@ -4,12 +4,6 @@
 # (mehrere GB, Modellgewichte von Hugging Face) bleiben aussen vor; die
 # Alt-Tests des Dispositions-Service laufen mit dem Fake-Forecaster aus
 # tests/conftest.py und pruefen den Verweigerungspfad ohne echtes Modell.
-#
-# Zwei Jobs, weil zwei getrennte Projekte im Baum liegen: "checks" prueft den
-# Dispositions-Service und die Discovery-Engine an der Wurzel, "inbox-copilot"
-# prueft das gleichnamige Unterprojekt mit dessen eigener Kette aus
-# inbox-copilot/pyproject.toml. Sie teilen keine Abhaengigkeiten und scheitern
-# unabhaengig voneinander.
 name: CI
 
 on:
@@ -63,40 +57,3 @@ jobs:
 
       - name: mypy --strict
         run: python -m mypy --strict --config-file pyproject.toml
-
-  inbox-copilot:
-    name: "inbox-copilot: pytest, ruff, mypy --strict"
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: inbox-copilot
-    steps:
-      - name: Quellcode auschecken
-        uses: actions/checkout@v4
-
-      - name: Python einrichten
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-          cache-dependency-path: inbox-copilot/pyproject.toml
-
-      - name: Abhaengigkeiten installieren
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
-
-      - name: pytest
-        # Die Live-Tests rufen die echte Anthropic-API auf und sind in
-        # pyproject.toml per addopts abgewaehlt; hier laeuft nur die netzfreie
-        # Suite.
-        run: python -m pytest -p no:cacheprovider
-
-      - name: mypy --strict
-        run: python -m mypy
-
-      - name: ruff
-        run: |
-          ruff check .
-          ruff format --check .

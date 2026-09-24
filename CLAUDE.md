@@ -13,10 +13,8 @@ dann nicht, wenn du den Code dafür kennst. Jedes Produkt hat sein eigenes
 Repository und seine eigene Sitzung.
 
 Der Inbox Copilot liegt in
-<https://github.com/harmweber787-png/inbox-copilot>. Der Ordner
-`inbox-copilot/` hier ist eine Altlast des Umzugs und wird nach Freigabe
-durch Harm entfernt — bis dahin **nicht** weiterentwickeln, Änderungen
-gehören ins neue Repository.
+<https://github.com/harmweber787-png/inbox-copilot> und ist seit dem
+24.09.2026 nicht mehr Teil dieses Repositorys.
 
 ## 2. Keine Wecker, keine Selbst-Erinnerungen
 

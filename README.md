@@ -659,3 +659,17 @@ von `src/`: eigene Abhängigkeiten (`requirements-kmu-discovery.txt`), eigene
 Tests (`tests_kmu_discovery/`), keine gemeinsamen Module.
 
 Details siehe [`kmu_discovery/README.md`](kmu_discovery/README.md).
+
+---
+
+## Ausgezogen: Inbox Copilot
+
+Das Modul M-1 "Inbox Triage & Drafter" lag bis zum 24.09.2026 als
+`inbox-copilot/` in diesem Repository. Es hat ein eigenes Repository
+bekommen:
+
+**<https://github.com/harmweber787-png/inbox-copilot>**
+
+Die Git-History des Ordners ist dorthin übernommen worden; der Ordner ist
+dort zur Wurzel geworden. Änderungen am Inbox Copilot gehören ausschliesslich
+in das neue Repository — hier liegt nichts davon mehr.
