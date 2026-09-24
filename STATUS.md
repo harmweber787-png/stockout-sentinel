@@ -2,6 +2,9 @@
 
 ## Stand (24.09.2026)
 
+Dieses Repository enthält seit heute nur noch zwei Produkte. Der Inbox
+Copilot ist ausgezogen (siehe unten).
+
 **KMU-Problem-Discovery-Engine** (`kmu_discovery/`) — der aktive Teil. Drei
 Datenquellen sind angebunden, jede nach demselben Vorgehen: erst live
 erheben, dann den Adapter auf die Erhebung stützen.
@@ -21,8 +24,7 @@ derzeit ohne aktive Weiterentwicklung. TimesFM als verbindliches
 Hauptmodell, Fallback blockiert; die Tests laufen in der CI mit dem
 Fake-Forecaster, ohne `torch` und `timesfm`.
 
-CI: zwei Jobs, `checks` für die Wurzelprojekte und `inbox-copilot` für den
-Ordner gleichen Namens. `main` ist grün.
+CI: ein Job, `checks`. `main` ist grün.
 
 ## Erledigt in der letzten Sitzung
 
@@ -31,13 +33,16 @@ Ordner gleichen Namens. `main` ist grün.
   Zeitstempel gesetzt hat. Letzterer hat die beiden zeitabhängigen Tests
   `test_wiederholter_abruf_kommt_aus_dem_cache` repariert, die seit dem
   18.09. auf `main` und damit auf jedem PR rot waren.
-- **#2 gemergt:** Inbox Copilot als Unterordner (inzwischen ausgezogen,
-  siehe unten).
-- **#6 gemergt:** SDK-1.x-Kompatibilität des Inbox Copilot.
-- **#7 gemergt:** zweiter CI-Job für `inbox-copilot/`.
+- **#2, #6, #7 gemergt:** Inbox Copilot als Unterordner,
+  SDK-1.x-Kompatibilität, zweiter CI-Job.
+- **#8 gemergt:** `CLAUDE.md` mit den Arbeitsregeln und diese `STATUS.md`.
+- **#9 gemergt:** `inbox-copilot/` entfernt, der zweite CI-Job entfällt,
+  README und CLAUDE.md verweisen auf das neue Repository.
 - **Inbox Copilot ausgezogen** nach
   <https://github.com/harmweber787-png/inbox-copilot> — mit History, der
-  Ordner ist dort zur Wurzel geworden. Dateistand byteweise deckungsgleich.
+  Ordner ist dort zur Wurzel geworden. Dateistand byteweise deckungsgleich
+  (SHA-256 `fb0a9e33…1ab21e` auf beiden Seiten), CI dort beim ersten Lauf
+  grün.
 
 ## Offen
 
@@ -51,15 +56,13 @@ Ordner gleichen Namens. `main` ist grün.
 
 - **Freigabe für `harmweber787-png/confident-style`.** Die
   Claude-GitHub-App ist dort nicht installiert, deshalb schlägt der Push
-  fehl. Freigeben unter <https://claude.ai/connect-github>, oder das
-  bereitgestellte Archiv von Hand hochladen.
-- **Entscheidung über PR #5** (siehe unten). Erst wenn der Export im neuen
-  Repository liegt, wird #5 mit Verweis dorthin geschlossen.
-- **Freigabe zum Entfernen von `inbox-copilot/`** aus diesem Repository.
-  Der Ordner bleibt bis dahin liegen; das neue Repository ist grün.
+  fehl. Harm erledigt das selbst und meldet sich; bis dahin wird nichts
+  unternommen.
+- **Entscheidung über PR #5.** Erst wenn der Export im neuen Repository
+  liegt, wird #5 mit Verweis dorthin geschlossen.
 
 ## Offene PRs
 
 | # | Titel | Status |
 |---|---|---|
-| 5 | Add Confident Style MVP: photo-based clothing and hair advice | Draft, konfliktfrei, 15 Commits hinter `main`. CI grün, prüft aber nur Python — die ~9'000 Zeilen TypeScript hat nie eine Prüfung gesehen. Soll nicht gemergt, sondern nach dem Export geschlossen werden. |
+| 5 | Add Confident Style MVP: photo-based clothing and hair advice | Draft, konfliktfrei. CI grün, prüft aber nur Python — die ~9'000 Zeilen TypeScript hat nie eine Prüfung gesehen. Soll nicht gemergt, sondern nach dem Export geschlossen werden. |
