@@ -651,7 +651,9 @@ Netzabhängigkeit wieder ein.
 
 ---
 
-## Zweites Projekt in diesem Repository: `kmu_discovery/`
+## Weitere Projekte in diesem Repository
+
+### `kmu_discovery/`
 
 Neben dem Dispositions-Service liegt in diesem Repository die **Swiss KMU
 Problem-Discovery-Engine** (`kmu_discovery/`). Sie ist vollständig unabhängig
@@ -659,3 +661,9 @@ von `src/`: eigene Abhängigkeiten (`requirements-kmu-discovery.txt`), eigene
 Tests (`tests_kmu_discovery/`), keine gemeinsamen Module.
 
 Details siehe [`kmu_discovery/README.md`](kmu_discovery/README.md).
+
+### `confident-style/`
+
+"Confident Style", eine mobile-first Web-App (Next.js, TypeScript, Tailwind)
+für persönliche Kleidungs- und Frisurenberatung aus zwei Fotos. Eigenständiges
+Projekt mit eigener README: [`confident-style/README.md`](confident-style/README.md).
